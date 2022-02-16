@@ -20,14 +20,14 @@ def add_geometry(filename):
             continue
         geometry += line + ' '
     geometry = geometry[:-1]  # remove final space
-    geometry += '">\n<Normal vector="'
+    geometry += '" />\n<Normal vector="'
     for line in normals.firstChild.data.splitlines():
         line = line.strip()
         if not line:
             continue
         geometry += line + ' '
     geometry = geometry[:-1]  # remove final space
-    geometry += '">\n</IndexeFaceSet>'
+    geometry += '" />\n</IndexedFaceSet>'
     return geometry
 
 
@@ -40,8 +40,7 @@ file = minidom.parseString(content.replace('::', ''))
 
 bodies = file.getElementsByTagName('Body')
 
-x3d = '''
-<?xml version="1.0" encoding="UTF-8"?>
+x3d = '''<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
 <x3d version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance"
  xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
