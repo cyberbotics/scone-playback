@@ -12,7 +12,16 @@ def add_geometry(filename):
         line = line.strip()
         if not line:
             continue
-        geometry += line + ' -1 '
+        indices = line.split()
+        length = len(indices)
+        if length == 3:
+            geometry += line + ' -1 '
+        elif length == 4:
+            geometry += indices[0] + ' ' + indices[1] + ' ' + indices[2] + ' -1 '
+            geometry += indices[0] + ' ' + indices[2] + ' ' + indices[3] + ' -1 '
+        else:
+            print('Invalid number of vertex: ' + str(length))
+
     geometry = geometry[:-1]  # remove final space
     geometry += "'>\n<Coordinate point='"
     for line in vertices.firstChild.data.splitlines():
