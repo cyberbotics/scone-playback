@@ -7,7 +7,7 @@ def add_shape(filename):
     shape = f"<Shape id='n{id}'>"
     id += 1
     if webots:
-        shape += f"""<PBRAppearance id='n{id}'>
+        shape += f"""<PBRAppearance id='n{id}' roughness='1' metalness='0' normalMapFactor='0.2'>
 <ImageTexture id='n{id+1}'
  url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg"'
  containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
@@ -41,6 +41,7 @@ def add_shape(filename):
     indices = file.getElementsByTagName('Polys')[0].getElementsByTagName('DataArray')[0]
     shape += f"<IndexedFaceSet id='n{id}' coordIndex='"
     id += 1
+    index = ''
     for line in indices.firstChild.data.splitlines():
         line = line.strip()
         if not line:
@@ -48,9 +49,10 @@ def add_shape(filename):
         indices = line.split()
         length = len(indices) - 2
         for i in range(length):  # assuming convex faces
-            shape += indices[0] + ' ' + indices[i+1] + ' ' + indices[i+2] + ' -1 '
-    shape = shape[:-1]  # remove final space
-    shape += f"'>\n<Coordinate id='n{id}' point='"
+            index += indices[0] + ' ' + indices[i+1] + ' ' + indices[i+2] + ' -1 '
+    index = index[:-1]  # remove final space
+    shape += index + "' normalIndex='" + index + "'>\n"
+    shape += f"'<Coordinate id='n{id}' point='"
     id += 1
     for line in vertices.firstChild.data.splitlines():
         line = line.strip()
@@ -58,7 +60,7 @@ def add_shape(filename):
             continue
         shape += line + ' '
     shape = shape[:-1]  # remove final space
-    shape += f"' />\n<Normal id='n{id}' vector='"
+    shape += f"'></Coordinate>\n<Normal id='n{id}' vector='"
     id += 1
     for line in normals.firstChild.data.splitlines():
         line = line.strip()
@@ -66,7 +68,8 @@ def add_shape(filename):
             continue
         shape += line + ' '
     shape = shape[:-1]  # remove final space
-    shape += "' />\n</IndexedFaceSet></Shape>"
+    shape += "'></Normal>\n"
+    shape += "</IndexedFaceSet></Shape>"
     return shape
 
 
@@ -221,7 +224,8 @@ for transform in transforms:  # nesting transforms
 for transform in root:  # adding transforms to X3D
     x3d += add_transform(transform)
 
-x3d += '</Transform></Scene></X3D>\n'
+x3d += '</Transform>\n'
+x3d += '</Scene></X3D>\n'
 
 file = open('model.x3d', 'w')
 file.write(x3d)
