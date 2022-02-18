@@ -1,47 +1,77 @@
 from xml.dom import minidom
-from scipy.interpolate import CubicSpline
 
 
-def add_geometry(filename):
+def add_shape(filename):
+    global id
+
+    shape = f"<Shape id='n{id}'>"
+    id += 1
+    if webots:
+        shape += f"""<PBRAppearance id='n{id}'>
+<ImageTexture id='n{id+1}'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
+<TextureProperties id='n{id+2}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
+ magnificationFilter='AVG_PIXEL'/>
+</ImageTexture>
+<ImageTexture id='n{id+3}'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_roughness.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='roughness'>
+<TextureProperties id='n{id+4}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
+ magnificationFilter='AVG_PIXEL'/>
+</ImageTexture>
+<ImageTexture  id='n{id+5}'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_normal.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='normal'>
+<TextureProperties id='n{id+6}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
+ magnificationFilter='AVG_PIXEL'/>
+</ImageTexture>
+<ImageTexture id='n{id+7}'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_occlusion.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='occlusion'>
+<TextureProperties id='n{id+8}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
+ magnificationFilter="AVG_PIXEL"/>
+</ImageTexture>
+</PBRAppearance>
+"""
+    id += 9
     file = minidom.parse(filename)
     normals = file.getElementsByTagName('PointData')[0].getElementsByTagName('DataArray')[0]
     vertices = file.getElementsByTagName('Points')[0].getElementsByTagName('DataArray')[0]
     indices = file.getElementsByTagName('Polys')[0].getElementsByTagName('DataArray')[0]
-    geometry = "<IndexedFaceSet coordIndex='"
+    shape += f"<IndexedFaceSet id='n{id}' coordIndex='"
+    id += 1
     for line in indices.firstChild.data.splitlines():
         line = line.strip()
         if not line:
             continue
         indices = line.split()
-        length = len(indices)
-        if length == 3:
-            geometry += line + ' -1 '
-        elif length == 4:
-            geometry += indices[0] + ' ' + indices[1] + ' ' + indices[2] + ' -1 '
-            geometry += indices[0] + ' ' + indices[2] + ' ' + indices[3] + ' -1 '
-        else:
-            print('Invalid number of vertex: ' + str(length))
-
-    geometry = geometry[:-1]  # remove final space
-    geometry += "'>\n<Coordinate point='"
+        length = len(indices) - 2
+        for i in range(length):  # assuming convex faces
+            shape += indices[0] + ' ' + indices[i+1] + ' ' + indices[i+2] + ' -1 '
+    shape = shape[:-1]  # remove final space
+    shape += f"'>\n<Coordinate id='n{id}' point='"
+    id += 1
     for line in vertices.firstChild.data.splitlines():
         line = line.strip()
         if not line:
             continue
-        geometry += line + ' '
-    geometry = geometry[:-1]  # remove final space
-    geometry += "' />\n<Normal vector='"
+        shape += line + ' '
+    shape = shape[:-1]  # remove final space
+    shape += f"' />\n<Normal id='n{id}' vector='"
+    id += 1
     for line in normals.firstChild.data.splitlines():
         line = line.strip()
         if not line:
             continue
-        geometry += line + ' '
-    geometry = geometry[:-1]  # remove final space
-    geometry += "' />\n</IndexedFaceSet>"
-    return geometry
+        shape += line + ' '
+    shape = shape[:-1]  # remove final space
+    shape += "' />\n</IndexedFaceSet></Shape>"
+    return shape
 
 
 def add_transform(transform):
+    global id
     translation = [transform['translation'][0] + transform['tx_default'],
                    transform['translation'][1] + transform['ty_default'],
                    transform['translation'][2] + transform['tz_default']]
@@ -49,9 +79,10 @@ def add_transform(transform):
                 transform['rotation'][1],
                 transform['rotation'][2],
                 transform['rotation'][3]]
-    x3d = f"<Transform name='{transform['body']}'" + \
+    x3d = f"<Transform id='n{id}' name='{transform['body']}'" + \
           f" translation='{translation[0]} {translation[1]} {translation[2]}'" + \
           f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'>"
+    id += 1
     x3d += transform['content']
     for child in transform['children']:
         x3d += add_transform(child)
@@ -59,7 +90,8 @@ def add_transform(transform):
     return x3d
 
 
-webots = False
+id = 10
+webots = True
 # parse an xml file by name
 file = open('resources/models/gait0914.osim', 'r')
 content = file.read()
@@ -77,7 +109,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <meta name='generator' content='Webots' />
 </head>
 <Scene>
-<WorldInfo id='n1' title='Human Skeleton' info='' basicTimeStep='32' coordinateSystem='ENU'>
+<WorldInfo id='n1' title='Human Skeleton' info='"Imported from OpenSim"' basicTimeStep='32' coordinateSystem='ENU'>
 </WorldInfo>
 <Viewpoint id='n2' orientation='-0.23244937 -0.14943881 0.9610595 3.9676616' position='0.24667683 0.30063453 0.22481202'
  exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
@@ -96,12 +128,12 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
  backUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.png"'
  backIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.hdr"'>
 </Background>
-<DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1' castShadows='TRUE'>
+<DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1'>
 </DirectionalLight>
+<Transform id='n5' solid='true' rotation='1 0 0 1.5708'>
 """
 
 transforms = []
-id = 10
 for body in bodies:
     parent_bodies = body.getElementsByTagName('parent_body')
     if not parent_bodies:
@@ -171,39 +203,9 @@ for body in bodies:
                     print('Wrong rotational axis: ' + axis)
             else:
                 print('Wrong motion type: ' + motion_type)
-    transform['content'] = "<Shape castShadows='true'>"
-    if webots:
-        transform['content'] += """<PBRAppearance roughness='1' metalness='0'>
-<ImageTexture
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_base_color.jpg'
- containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
-<TextureProperties anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
- magnificationFilter='AVG_PIXEL'/>
-</ImageTexture>
-<ImageTexture
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_roughness.jpg'
- containerField='' origChannelCount='3' isTransparent='false' type='roughness'>
-<TextureProperties anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
- magnificationFilter='AVG_PIXEL'/>
-</ImageTexture>
-<ImageTexture
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_normal.jpg'
- containerField='' origChannelCount='3' isTransparent='false' type='normal'>
-<TextureProperties anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
- magnificationFilter='AVG_PIXEL'/>
-</ImageTexture>
-<ImageTexture
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_occlusion.jpg'
- containerField='' origChannelCount='3' isTransparent='false' type='occlusion'>
-<TextureProperties anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
- magnificationFilter="AVG_PIXEL"/>
-</ImageTexture>
-</PBRAppearance>
-"""
     geometry_files = body.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
-        transform['content'] += add_geometry('resources/geometry/' + geometry_file.firstChild.data)
-    transform['content'] += '</Shape>'
+        transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
 
 root = []
 for transform in transforms:  # nesting transforms
@@ -219,7 +221,7 @@ for transform in transforms:  # nesting transforms
 for transform in root:  # adding transforms to X3D
     x3d += add_transform(transform)
 
-x3d += '</Scene></X3D>\n'
+x3d += '</Transform></Scene></X3D>\n'
 
 file = open('model.x3d', 'w')
 file.write(x3d)
