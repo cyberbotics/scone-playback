@@ -1,13 +1,22 @@
 from xml.dom import minidom
+from scipy.interpolate import CubicSpline
 
 
 def add_shape(filename):
     global id
 
+    # if filename[-9:] == 'femur.vtp' or filename[-13:] == 'hat_skull.vtp':
+    #     baseColor = " baseColor='1 0.5 0.5'"
+    # elif filename[-9:] == 'tibia.vtp':
+    #     baseColor = " baseColor='0.5 1 0.5'"
+    # else:
+
+    baseColor = ''
     shape = f"<Shape id='n{id}'>"
     id += 1
+    webots = True
     if webots:
-        shape += f"""<PBRAppearance id='n{id}' roughness='1' metalness='0' normalMapFactor='0.2'>
+        shape += f"""<PBRAppearance id='n{id}' roughness='1' metalness='0' normalMapFactor='0.2'{baseColor}>
 <ImageTexture id='n{id+1}'
  url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg"'
  containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
@@ -20,7 +29,7 @@ def add_shape(filename):
 <TextureProperties id='n{id+4}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
-<ImageTexture  id='n{id+5}'
+<ImageTexture id='n{id+5}'
  url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_normal.jpg"'
  containerField='' origChannelCount='3' isTransparent='false' type='normal'>
 <TextureProperties id='n{id+6}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
@@ -43,7 +52,7 @@ def add_shape(filename):
     id += 1
     index = ''
     for line in indices.firstChild.data.splitlines():
-        line = line.strip()
+        line = ' '.join(line.split())
         if not line:
             continue
         indices = line.split()
@@ -52,10 +61,10 @@ def add_shape(filename):
             index += indices[0] + ' ' + indices[i+1] + ' ' + indices[i+2] + ' -1 '
     index = index[:-1]  # remove final space
     shape += index + "' normalIndex='" + index + "'>\n"
-    shape += f"'<Coordinate id='n{id}' point='"
+    shape += f"<Coordinate id='n{id}' point='"
     id += 1
     for line in vertices.firstChild.data.splitlines():
-        line = line.strip()
+        line = ' '.join(line.split())
         if not line:
             continue
         shape += line + ' '
@@ -94,7 +103,6 @@ def add_transform(transform):
 
 
 id = 10
-webots = True
 # parse an xml file by name
 file = open('resources/models/gait0914.osim', 'r')
 content = file.read()
@@ -114,7 +122,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <Scene>
 <WorldInfo id='n1' title='Human Skeleton' info='"Imported from OpenSim"' basicTimeStep='32' coordinateSystem='ENU'>
 </WorldInfo>
-<Viewpoint id='n2' orientation='0 0 1 4.375' position='1.133 2.733 0.768'
+<Viewpoint id='n2' orientation='0 0 1 4.375' position='1.157 2.946 0.544'
  exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
 </Viewpoint>
 <Background id='n3'
@@ -165,7 +173,6 @@ for body in bodies:
     }
     transforms.append(transform)
     coordinates = body.getElementsByTagName('Coordinate')
-    count = 0
     for coordinate in coordinates:
         motion_type = coordinate.getElementsByTagName('motion_type')[0].firstChild.data
         default_value = float(coordinate.getElementsByTagName('default_value')[0].firstChild.data)
@@ -177,35 +184,45 @@ for body in bodies:
             c = cs.data
             if c != coordinate.attributes['name'].value:
                 continue
+            value = default_value
+            function = transform_axis.getElementsByTagName('function')[0]
+            if function:
+                constant_tags = function.getElementsByTagName('Constant')
+                if len(constant_tags) > 0:
+                    value_tag = constant_tags[0].getElementsByTagName('value')[0]
+                    if value_tag:
+                        value += float(value_tag.firstChild.data)
+                simm_spline_tags = function.getElementsByTagName('SimmSpline')
+                if len(simm_spline_tags) > 0:
+                    x_array = [float(x) for x in simm_spline_tags[0].getElementsByTagName('x')[0].firstChild.data.split()]
+                    y_array = [float(y) for y in simm_spline_tags[0].getElementsByTagName('y')[0].firstChild.data.split()]
+                    cs = CubicSpline(x_array, y_array)
+                    value = cs(default_value)
+                    print("cubic spline for " + body.attributes['name'].value + " (" +
+                          transform_axis.attributes['name'].value + "): " + str(default_value) + " => " + str(value))
             axis = transform_axis.getElementsByTagName('axis')[0].firstChild.data
-            count += 1
             id += 1
-            if motion_type == 'translational':
-                if axis == '1 0 0':
-                    transform['tx'] = c
-                    transform['tx_default'] = default_value
-                elif axis == '0 1 0':
-                    transform['ty'] = c
-                    transform['ty_default'] = default_value
-                elif axis == '0 0 1':
-                    transform['tz'] = c
-                    transform['tz_default'] = default_value
-                else:
-                    print('Wrong translational axis: ' + axis)
-            elif motion_type == 'rotational':
-                if axis == '1 0 0':
-                    transform['rx'] = c
-                    transform['rx_default'] = default_value
-                elif axis == '0 1 0':
-                    transform['ry'] = c
-                    transform['ry_value'] = default_value
-                elif axis == '0 0 1':
-                    transform['rz'] = c
-                    transform['rz_value'] = default_value
-                else:
-                    print('Wrong rotational axis: ' + axis)
+            name = transform_axis.attributes['name'].value
+            if name == 'translation1':
+                transform['tx'] = c
+                transform['tx_default'] = value
+            elif name == 'translation2':
+                transform['ty'] = c
+                transform['ty_default'] = value
+            elif name == 'translation3':
+                transform['tz'] = c
+                transform['tz_default'] = value
+            elif name == 'rotation1':
+                transform['rx'] = c
+                transform['rx_default'] = value
+            elif name == 'rotation2':
+                transform['ry'] = c
+                transform['ry_value'] = value
+            elif name == 'rotation3':
+                transform['rz'] = c
+                transform['rz_value'] = value
             else:
-                print('Wrong motion type: ' + motion_type)
+                print('Wrong TranformAxis name: ' + name)
     geometry_files = body.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
