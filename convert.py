@@ -126,7 +126,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <Scene>
 <WorldInfo id='n1' title='Human Skeleton' info='"Imported from OpenSim"' basicTimeStep='32' coordinateSystem='ENU'>
 </WorldInfo>
-<Viewpoint id='n2' orientation='0 0 1 4.375' position='1.157 2.946 0.544'
+<Viewpoint id='n2' orientation='0 0 1 3.66' position='12.858 1.682 0.863'
  exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
 </Viewpoint>
 <Background id='n3'
