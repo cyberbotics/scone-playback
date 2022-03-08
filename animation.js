@@ -1,11 +1,11 @@
 import WbWorld from 'https://cyberbotics.com/wwi/R2022b/nodes/WbWorld.js';
 
-let counter = 0;
+function sceneIsReady() {
+  console.log("Scene is ready");
+}
+
 function displayViewpoint() {
-  if (counter++ < 10)
-    setTimeout(displayViewpoint, 1000);
   let webotsView = document.getElementsByTagName('webots-view')[0];
-  console.log(webotsView);
   if (typeof WbWorld.instance === 'undefined') {
     console.log("No world instance.");
     return;
@@ -14,15 +14,17 @@ function displayViewpoint() {
   if (object) {
     console.log("Found Transform");
     console.log(object.rotation.toString())
-  } else {
+  } else
     console.log("No Transform found");
-  }
   object = WbWorld.instance.viewpoint;
   if (object) {
     console.log("Viewpoint orientation = " + object.orientation.toString())
     console.log("Viewpoint position = " + object.position.toString())
-  } else {
+  } else
     console.log("No Viewpoint found");
-  }
 }
-setTimeout(displayViewpoint, 1000);
+
+window.addEventListener('DOMContentLoaded', (event) => {
+  let webotsView = document.getElementsByTagName('webots-view')[0];
+  webotsView.onready = sceneIsReady;
+});

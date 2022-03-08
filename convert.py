@@ -1,5 +1,7 @@
 from xml.dom import minidom
+import numpy as np
 from scipy.interpolate import CubicSpline
+from scipy.spatial.transform import Rotation
 
 
 def add_shape(filename):
@@ -82,8 +84,7 @@ def add_shape(filename):
     return shape
 
 
-def add_transform(transform):
-    global id
+def add_transform(transform, nested=False):
     translation = [transform['translation'][0] + transform['tx_default'],
                    transform['translation'][1] + transform['ty_default'],
                    transform['translation'][2] + transform['tz_default']]
@@ -91,14 +92,17 @@ def add_transform(transform):
                 transform['rotation'][1],
                 transform['rotation'][2],
                 transform['rotation'][3]]
-    x3d = f"<Transform id='n{id}' name='{transform['body']}'" + \
+    x3d = f"<Transform id='n{transform['id']}' name='{transform['body']}'" + \
           f" translation='{translation[0]} {translation[1]} {translation[2]}'" + \
           f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'>"
-    id += 1
     x3d += transform['content']
-    for child in transform['children']:
-        x3d += add_transform(child)
+    if nested:
+        for child in transform['children']:
+            x3d += add_transform(child, nested)
     x3d += '</Transform>'
+    if not nested:
+        for child in transform['children']:
+            x3d += add_transform(child, nested)
     return x3d
 
 
@@ -149,12 +153,12 @@ for body in bodies:
     parent_bodies = body.getElementsByTagName('parent_body')
     if not parent_bodies:
         continue
-    location_in_parent = body.getElementsByTagName('location_in_parent')[0].firstChild.data
-    t = location_in_parent.split()
     transform = {
+        "id": id,
         "parent_body": parent_bodies[0].firstChild.data,
         "body": body.attributes['name'].value,
-        "translation": [float(t[0]), float(t[1]), float(t[2])],
+        "mass_center": [float(x) for x in body.getElementsByTagName('mass_center')[0].firstChild.data.split()],
+        "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "rotation": [0, 0, 1, 0],
         "content": '',
         "children": [],
@@ -171,6 +175,7 @@ for body in bodies:
         "rz": None,
         "rz_default": 0.0
     }
+    id += 1
     transforms.append(transform)
     coordinates = body.getElementsByTagName('Coordinate')
     for coordinate in coordinates:
@@ -201,7 +206,6 @@ for body in bodies:
                     print("cubic spline for " + body.attributes['name'].value + " (" +
                           transform_axis.attributes['name'].value + "): " + str(default_value) + " => " + str(value))
             axis = transform_axis.getElementsByTagName('axis')[0].firstChild.data
-            id += 1
             name = transform_axis.attributes['name'].value
             if name == 'translation1':
                 transform['tx'] = c
@@ -246,4 +250,73 @@ x3d += '</Scene></X3D>\n'
 
 file = open('model.x3d', 'w')
 file.write(x3d)
+file.close()
+
+# generate the animation file from the STO file
+
+
+def list_bodies(list, t):
+    list.append(t)
+    for c in t['children']:
+        list_bodies(list, c)
+
+
+bodies = []
+list_bodies(bodies, root[0])
+print([x['body'] for x in bodies])
+
+file = open('resources/sto/1704_0.526_0.519.par.sto')
+while True:
+    line = file.readline().strip()
+    if line == 'endheader':
+        break
+header = file.readline().split()
+
+lines = []
+while True:
+    line = file.readline()
+    if line:
+        lines.append([float(x) for x in line.split()])
+    else:
+        break
+file.close()
+
+basic_time_step = int(lines[1][0] * 1000)
+ids = ''
+for body in bodies:
+    ids += str(body['id']) + ';'
+ids = ids[:-1]
+animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
+count = 0
+for line in lines:
+    time = int(line[0] * 1000)
+    animation += f'{{"time":{time},"poses":['
+    for body in bodies:
+        name = body['body']
+        id = body['id']
+        tx = header.index(name + '.com_pos_x')
+        ty = header.index(name + '.com_pos_y')
+        tz = header.index(name + '.com_pos_z')
+        rx = header.index(name + '.ori_x')
+        ry = header.index(name + '.ori_y')
+        rz = header.index(name + '.ori_z')
+        r = Rotation.from_euler('xyz', [line[rx], line[ry], line[rz]])
+        rotvec = r.as_rotvec()
+        angle = np.linalg.norm(rotvec)
+        animation += f'{{"id":{id},'
+        x = line[tx]
+        y = line[ty]
+        z = line[tz]
+        r2 = r.apply(body['mass_center'])
+        x -= r2[0]
+        y -= r2[1]
+        z -= r2[2]
+        animation += f'"translation":"{x} {y} {z}",'
+        animation += f'"rotation":"{rotvec[0]/angle} {rotvec[1]/angle} {rotvec[2]/angle} {angle}"}},'
+    animation = animation[:-1]  # remove final coma
+    animation += ']},'
+    count += 1
+animation = animation[:-1] + ']}\n'
+file = open('animation.json', 'w', newline='\n')
+file.write(animation)
 file.close()
