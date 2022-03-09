@@ -14,7 +14,7 @@ def add_shape(filename):
     # else:
 
     baseColor = ''
-    shape = f"<Shape id='n{id}'>"
+    shape = f"<Shape id='n{id}' castShadows='true'>"
     id += 1
     webots = True
     if webots:
@@ -106,7 +106,6 @@ def add_transform(transform, nested=False):
     return x3d
 
 
-id = 10
 # parse an xml file by name
 file = open('resources/models/gait0914.osim', 'r')
 content = file.read()
@@ -143,11 +142,46 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
  backUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.png"'
  backIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.hdr"'>
 </Background>
-<DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1'>
+<DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1' castShadows='true'>
 </DirectionalLight>
-<Transform id='n5' solid='true' rotation='1 0 0 1.5708'>
+<Transform id='n5' name='rectangle arena' solid='true' translation="5 0 0">
+<Shape id='n6' castShadows='false'>
+<PBRAppearance id='n7' roughness='1' metalness='0'>
+<ImageTexture id='n8'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_base_color.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
+<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
+ magnificationFilter="AVG_PIXEL"/>
+</ImageTexture>
+<ImageTexture id='n9'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_roughness.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='roughness'>
+<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
+ magnificationFilter="AVG_PIXEL"/>
+</ImageTexture>
+<ImageTexture id='n10'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_normal.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='normal'>
+<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
+ magnificationFilter="AVG_PIXEL"/>
+</ImageTexture>
+<ImageTexture id='n11'
+ url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_occlusion.jpg"'
+ containerField='' origChannelCount='3' isTransparent='false' type='occlusion'>
+<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
+ magnificationFilter="AVG_PIXEL"/>
+</ImageTexture>
+</PBRAppearance>
+<IndexedFaceSet id='n12' coordIndex='0 1 2 -1 1 0 3 -1' normalIndex='0 0 0 -1 0 0 0 -1' texCoordIndex='0 1 2 -1 1 0 3 -1'>
+<Coordinate point='10.0000 -10.0000 0.0000, -10.0000 10.0000 0.0000, -10.0000 -10.0000 0.0000, 10.0000 10.0000 0.0000'>
+</Coordinate>
+<Normal vector='0.0000 0.0000 1.0000'></Normal>
+<TextureCoordinate point='16.0000 0.0000, 0.0000 16.0000, 0.0000 0.0000, 16.0000 16.0000'></TextureCoordinate>
+</IndexedFaceSet>
+</Shape></Transform>
+<Transform id='n13' solid='true' rotation='1 0 0 1.5708'>
 """
-
+id = 14
 transforms = []
 for body in bodies:
     parent_bodies = body.getElementsByTagName('parent_body')
