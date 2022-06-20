@@ -1,3 +1,3 @@
 # scone-playback
 
-The result of the opensim scene converted to Webots scene can be seen here: https://beta.webots.cloud/Sc_z6J0 (you should zoom out to see the model).
+The result of the scone simulation converted to Webots animation can be seen here: [https://beta.webots.cloud/AcGhNc6](https://beta.webots.cloud/AcGhNc6) (you can zoom, translate and rotate around the model).
