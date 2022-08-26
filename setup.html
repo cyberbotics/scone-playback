@@ -16,32 +16,96 @@
         <h1 class="title">
           Scone animation setup
         </h1>
-        <div class="dropdown is-active">
-          <div class="dropdown-trigger">
-            <button class="button" aria-haspopup="true" aria-controls="dropdown-menu2">
-              <span>Content</span>
-              <span class="icon is-small">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button>
+
+        <div class="field is-horizontal">
+          <div class="field-label">
+            <label class="label">Gait type:</label>
           </div>
-          <div class="dropdown-menu" id="dropdown-menu2" role="menu">
-            <div class="dropdown-content">
-              <div class="dropdown-item">
-                <p>You can insert <strong>any type of content</strong> within the dropdown menu.</p>
+          <div class="field-body">
+            <div class="field is-horizontal">
+              <div class="control">
+                <div class="select">
+                  <select>
+                    <option>Healthy</option>
+                  </select>
+                </div>
               </div>
-              <hr class="dropdown-divider">
-              <div class="dropdown-item">
-                <p>You simply need to use a <code>&lt;div&gt;</code> instead.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-horizontal">
+          <div class="field-label">
+            <label class="label">Muscle type:</label>
+          </div>
+          <div class="field-body">
+            <div class="field is-horizontal">
+              <div class="control">
+                <label class="radio"><input type="radio" name="type" checked> Miller </label>
+                <label class="radio"><input type="radio" name="type"> Thelen </label>
               </div>
-              <hr class="dropdown-divider">
-              <a href="#" class="dropdown-item">
-                This is a link
-              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-horizontal">
+          <div class="field-label">
+            <label class="label">Number of muscles:</label>
+          </div>
+          <div class="field-body">
+            <div class="field is-horizontal">
+              <div class="control">
+                <label class="radio"><input type="radio" name="number" checked> 14 </label>
+                <label class="radio"><input type="radio" name="number"> 18 </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-horizontal">
+          <div class="field-label">
+            <label class="label">Cost function measure:</label>
+          </div>
+          <div class="field-body">
+            <div class="field is-horizontal">
+              <div class="control">
+                <div class="select">
+                  <select>
+                    <option>0</option>
+                    <option>5</option>
+                    <option>8</option>
+                    <option>11</option>
+                    <option>15</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="field is-horizontal">
+          <div class="field-label">
+          </div>
+          <div class="field-body">
+            <div class="field">
+              <div class="control">
+                <button id="run" class="button is-link">Run</button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
+    <script>
+var button = document.querySelector('#run');
+button.addEventListener('click', function(event) {
+  // event.stopPropagation();
+  button.classList.toggle('is-loading');
+  setTimeout(function() {
+    button.classList.toggle('is-loading');
+    button.innerHTML = button.innerHTML == 'Run' ? 'Show' : 'Run';
+  }, 2000);
+});
+    </script>
   </body>
 </html>
