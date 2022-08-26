@@ -4,4 +4,4 @@ The result of the scone simulation converted to Webots animation can be seen her
 
 The parameters setup page is available here:
 
-https://cyberbotics.github.io/scone-playback/parameters.html
+https://cyberbotics.github.io/scone-playback/setup.html
