@@ -40,9 +40,9 @@
           </div>
           <div class="field-body">
             <div class="field is-horizontal">
-              <div class="control">
-                <label class="radio"><input type="radio" name="number" checked> 14 </label>
-                <label class="radio"><input type="radio" name="number"> 18 </label>
+              <div class="control" id="number">
+                <label class="radio"><input type="radio" name="number" value="14" checked> 14 </label>
+                <label class="radio"><input type="radio" name="number" value="18"> 18 </label>
               </div>
             </div>
           </div>
@@ -54,9 +54,9 @@
           </div>
           <div class="field-body">
             <div class="field is-horizontal">
-              <div class="control">
-                <label class="radio"><input type="radio" name="type" checked> Millard </label>
-                <label class="radio"><input type="radio" name="type"> Thelen </label>
+              <div class="control" id="type">
+                <label class="radio"><input type="radio" name="type" value="Millard" checked> Millard </label>
+                <label class="radio"><input type="radio" name="type" value="Thelen" disabled> Thelen </label>
               </div>
             </div>
           </div>
@@ -117,14 +117,24 @@
       </div>
     </section>
     <script>
-var button = document.querySelector('#run');
+let button = document.querySelector('#run');
+let number = document.querySelector('#number');
+let type = document.querySelector('#type');
+
 button.addEventListener('click', function(event) {
-  // event.stopPropagation();
   button.classList.toggle('is-loading');
   setTimeout(function() {
     button.classList.toggle('is-loading');
     button.innerHTML = button.innerHTML == 'Run' ? 'Show' : 'Run';
   }, 2000);
+});
+number.addEventListener('change', function(event) {
+  if (event.target.value == '14') {  // Millard
+    type.querySelectorAll('input')[0].checked = true;
+    type.querySelectorAll('input')[1].checked = false;
+    type.querySelectorAll('input')[1].disabled = true;
+  } else // '18'
+    type.querySelectorAll('input')[1].disabled = false;  // Thelen
 });
     </script>
   </body>
