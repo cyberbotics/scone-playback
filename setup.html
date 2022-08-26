@@ -138,12 +138,13 @@ number.addEventListener('change', function(event) {
     controller.querySelector('option[value="Ong2019"]').disabled = true;
     if (controller.value == 'Ong2019')
       controller.value = 'Geyer2010';
-  } else // '18'
+  } else { // '18'
     type.querySelectorAll('input')[1].disabled = false;  // Thelen
     controller.querySelector('option[value="Geyer2010"]').disabled = true;
     controller.querySelector('option[value="Ong2019"]').disabled = false;
     if (controller.value == 'Geyer2010')
       controller.value = 'Ong2019';
+  }
 });
     </script>
   </body>
