@@ -70,10 +70,10 @@
             <div class="field is-horizontal">
               <div class="control">
                 <div class="select">
-                  <select>
-                    <option>Geyer 2010</option>
-                    <option>Ong 2019</option>
-                    <option>Spinal Controller</option>
+                  <select id="controller">
+                    <option value="Geyer2010">Geyer 2010</option>
+                    <option value="Ong2019">Ong 2019</option>
+                    <option value="spinal_controller">Spinal Controller</option>
                   </select>
                 </div>
               </div>
@@ -120,6 +120,7 @@
 let button = document.querySelector('#run');
 let number = document.querySelector('#number');
 let type = document.querySelector('#type');
+let controller = document.querySelector('#controller');
 
 button.addEventListener('click', function(event) {
   button.classList.toggle('is-loading');
@@ -133,8 +134,16 @@ number.addEventListener('change', function(event) {
     type.querySelectorAll('input')[0].checked = true;
     type.querySelectorAll('input')[1].checked = false;
     type.querySelectorAll('input')[1].disabled = true;
+    controller.querySelector('option[value="Geyer2010"]').disabled = false;
+    controller.querySelector('option[value="Ong2019"]').disabled = true;
+    if (controller.value == 'Ong2019')
+      controller.value = 'Geyer2010';
   } else // '18'
     type.querySelectorAll('input')[1].disabled = false;  // Thelen
+    controller.querySelector('option[value="Geyer2010"]').disabled = true;
+    controller.querySelector('option[value="Ong2019"]').disabled = false;
+    if (controller.value == 'Geyer2010')
+      controller.value = 'Ong2019';
 });
     </script>
   </body>
