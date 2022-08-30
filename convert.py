@@ -20,26 +20,26 @@ def add_shape(filename):
     if webots:
         shape += f"""<PBRAppearance id='n{id}' roughness='1' metalness='0' normalMapFactor='0.2'{baseColor}>
 <ImageTexture id='n{id+1}'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='baseColor'>
 <TextureProperties id='n{id+2}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+3}'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_roughness.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='roughness'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_roughness.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='roughness'>
 <TextureProperties id='n{id+4}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+5}'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_normal.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='normal'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_normal.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='normal'>
 <TextureProperties id='n{id+6}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+7}'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_occlusion.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='occlusion'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_occlusion.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='occlusion'>
 <TextureProperties id='n{id+8}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
@@ -123,51 +123,51 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <meta name='generator' content='Webots' />
 </head>
 <Scene>
-<WorldInfo id='n1' title='Human Skeleton' info='"Imported from OpenSim"' basicTimeStep='32' coordinateSystem='ENU'>
+<WorldInfo id='n1' title='Human Skeleton' info='Imported from OpenSim' basicTimeStep='32' coordinateSystem='ENU'>
 </WorldInfo>
 <Viewpoint id='n2' orientation='0 0 1 3.66' position='12.858 1.682 0.863'
  exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
 </Viewpoint>
 <Background id='n3'
- rightUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.png"'
- rightIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.hdr"'
- leftUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.png"'
- leftIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.hdr"'
- topUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.png"'
- topIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.hdr"'
- bottomUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.png"'
- bottomIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.hdr"'
- frontUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.png"'
- frontIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.hdr"'
- backUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.png"'
- backIrradianceUrl='"https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.hdr"'>
+ rightUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.png'
+ rightIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.hdr'
+ leftUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.png'
+ leftIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.hdr'
+ topUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.png'
+ topIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.hdr'
+ bottomUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.png'
+ bottomIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.hdr'
+ frontUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.png'
+ frontIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.hdr'
+ backUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.png'
+ backIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.hdr'>
 </Background>
 <DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1' castShadows='true'>
 </DirectionalLight>
-<Transform id='n5' name='rectangle arena' solid='true' translation="5 0 0">
+<Transform id='n5' name='rectangle arena' type='solid' translation="5 0 0">
 <Shape id='n6' castShadows='false'>
 <PBRAppearance id='n7' roughness='1' metalness='0'>
 <ImageTexture id='n8'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_base_color.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='baseColor'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_base_color.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='baseColor'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
 <ImageTexture id='n9'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_roughness.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='roughness'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_roughness.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='roughness'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
 <ImageTexture id='n10'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_normal.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='normal'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_normal.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='normal'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
 <ImageTexture id='n11'
- url='"https://raw.githubusercontent.com/cyberbotics/webots/develop/projects/appearances/protos/textures/parquetry/chequered_parquetry_occlusion.jpg"'
- containerField='' origChannelCount='3' isTransparent='false' type='occlusion'>
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_occlusion.jpg'
+ containerField='' origChannelCount='3' isTransparent='false' role='occlusion'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
@@ -179,7 +179,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <TextureCoordinate point='16.0000 0.0000, 0.0000 16.0000, 0.0000 0.0000, 16.0000 16.0000'></TextureCoordinate>
 </IndexedFaceSet>
 </Shape></Transform>
-<Transform id='n13' solid='true' rotation='1 0 0 1.5708'>
+<Transform id='n13' type='solid' rotation='1 0 0 1.5708'>
 """
 id = 14
 transforms = []
