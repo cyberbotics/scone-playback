@@ -273,6 +273,7 @@ for body in bodies:
 muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
 muscle_count = 0
 for muscle in muscles:
+    print('Muscle: ' + muscle.attributes['name'].value)
     path_points = muscle.getElementsByTagName('PathPoint')
     for path_point in path_points:
         location = path_point.getElementsByTagName('location')[0].firstChild.data
