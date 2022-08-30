@@ -84,7 +84,7 @@ def add_shape(filename):
     return shape
 
 
-def add_transform(transform, nested=False):
+def add_transform(transform):
     translation = [transform['translation'][0] + transform['tx_default'],
                    transform['translation'][1] + transform['ty_default'],
                    transform['translation'][2] + transform['tz_default']]
@@ -96,13 +96,18 @@ def add_transform(transform, nested=False):
           f" translation='{translation[0]} {translation[1]} {translation[2]}'" + \
           f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'>"
     x3d += transform['content']
-    if nested:
-        for child in transform['children']:
-            x3d += add_transform(child, nested)
+    print(transform['body'] + ' -> ' + transform['parent_body'])
+
+    for child in transform['children']:
+        if child['body'].startswith('muscle-'):
+            x3d += add_transform(child)
+
     x3d += '</Transform>'
-    if not nested:
-        for child in transform['children']:
-            x3d += add_transform(child, nested)
+
+    for child in transform['children']:
+        if not child['body'].startswith('muscle-'):
+            x3d += add_transform(child)
+
     return x3d
 
 
@@ -265,6 +270,42 @@ for body in bodies:
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
 
+muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
+muscle_count = 0
+for muscle in muscles:
+    path_points = muscle.getElementsByTagName('PathPoint')
+    for path_point in path_points:
+        location = path_point.getElementsByTagName('location')[0].firstChild.data
+        body = path_point.getElementsByTagName('body')[0].firstChild.data
+        content = f"\n<Shape id='n{id}' castShadows='true'>\n"
+        content += f"  <PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
+        content += f"  <Cylinder id='n{id + 2}' radius='0.0325' height='0.1'></Cylinder>\n</Shape>\n"
+        id += 3
+        sphere = {
+                "id": id,
+                "parent_body": body,
+                "body": f"muscle-{muscle_count}",
+                "translation": [float(x) for x in location.split()],
+                "rotation": [1, 0, 0, 1.5707963267949],
+                "content": content,
+                "children": [],
+                "tx": None,
+                "tx_default": 0.0,
+                "ty": None,
+                "ty_default": 0.0,
+                "tz": None,
+                "tz_default": 0.0,
+                "rx": None,
+                "rx_default": 0.0,
+                "ry": None,
+                "ry_default": 0.0,
+                "rz": None,
+                "rz_default": 0.0}
+        id += 1
+        muscle_count += 1
+        transforms.append(sphere)
+        print(f'{body}: {location}')
+
 root = []
 for transform in transforms:  # nesting transforms
     if transform['parent_body'] == 'ground':
@@ -290,6 +331,8 @@ file.close()
 
 
 def list_bodies(list, t):
+    if t['body'].startswith('muscle-'):
+        return
     list.append(t)
     for c in t['children']:
         list_bodies(list, c)
