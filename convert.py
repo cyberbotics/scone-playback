@@ -85,9 +85,9 @@ def add_shape(filename):
 
 
 def add_transform(transform):
-    translation = [transform['translation'][0] + transform['tx_default'],
-                   transform['translation'][1] + transform['ty_default'],
-                   transform['translation'][2] + transform['tz_default']]
+    translation = [transform['translation'][0] + transform['tx'],
+                   transform['translation'][1] + transform['ty'],
+                   transform['translation'][2] + transform['tz']]
     rotation = [transform['rotation'][0],
                 transform['rotation'][1],
                 transform['rotation'][2],
@@ -190,12 +190,12 @@ for body in bodies:
         "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "rotation": [0, 0, 1, 0],
         "content": '',
-        "tx_default": 0.0,
-        "ty_default": 0.0,
-        "tz_default": 0.0,
-        "rx_default": 0.0,
-        "ry_default": 0.0,
-        "rz_default": 0.0
+        "tx": 0.0,
+        "ty": 0.0,
+        "tz": 0.0,
+        "rx": 0.0,
+        "ry": 0.0,
+        "rz": 0.0
     }
     id += 1
     transforms.append(transform)
@@ -208,8 +208,7 @@ for body in bodies:
             cs = transform_axis.getElementsByTagName('coordinates')[0].firstChild
             if not cs:
                 continue
-            c = cs.data
-            if c != coordinate.attributes['name'].value:
+            if cs.data != coordinate.attributes['name'].value:
                 continue
             value = default_value
             function = transform_axis.getElementsByTagName('function')[0]
@@ -230,22 +229,16 @@ for body in bodies:
             axis = transform_axis.getElementsByTagName('axis')[0].firstChild.data
             name = transform_axis.attributes['name'].value
             if name == 'translation1':
-                transform['tx'] = c
-                transform['tx_default'] = value
+                transform['tx'] = value
             elif name == 'translation2':
-                transform['ty'] = c
-                transform['ty_default'] = value
+                transform['ty'] = value
             elif name == 'translation3':
-                transform['tz'] = c
-                transform['tz_default'] = value
+                transform['tz'] = value
             elif name == 'rotation1':
-                transform['rx'] = c
-                transform['rx_default'] = value
+                transform['rx'] = value
             elif name == 'rotation2':
-                transform['ry'] = c
                 transform['ry_value'] = value
             elif name == 'rotation3':
-                transform['rz'] = c
                 transform['rz_value'] = value
             else:
                 print('Wrong TranformAxis name: ' + name)
@@ -274,12 +267,12 @@ for muscle in muscles:
                 "translation": [0, 0, 0],
                 "rotation": [1, 0, 0, 0],
                 "content": content,
-                "tx_default": 0.0,
-                "ty_default": 0.0,
-                "tz_default": 0.0,
-                "rx_default": 0.0,
-                "ry_default": 0.0,
-                "rz_default": 0.0}
+                "tx": 0.0,
+                "ty": 0.0,
+                "tz": 0.0,
+                "rx": 0.0,
+                "ry": 0.0,
+                "rz": 0.0}
         id += 1
         muscle_count += 1
         transforms.append(sphere)
