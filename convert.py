@@ -97,17 +97,7 @@ def add_transform(transform):
           f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'>"
     x3d += transform['content']
     print(transform['body'] + ' -> ' + transform['parent_body'])
-
-    for child in transform['children']:
-        if child['body'].startswith('muscle-'):
-            x3d += add_transform(child)
-
     x3d += '</Transform>'
-
-    for child in transform['children']:
-        if not child['body'].startswith('muscle-'):
-            x3d += add_transform(child)
-
     return x3d
 
 
@@ -200,7 +190,6 @@ for body in bodies:
         "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "rotation": [0, 0, 1, 0],
         "content": '',
-        "children": [],
         "tx": None,
         "tx_default": 0.0,
         "ty": None,
@@ -274,22 +263,23 @@ muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
 muscle_count = 0
 for muscle in muscles:
     print('Muscle: ' + muscle.attributes['name'].value)
-    path_points = muscle.getElementsByTagName('PathPoint')
-    for path_point in path_points:
-        location = path_point.getElementsByTagName('location')[0].firstChild.data
+    path_points = muscle.getElementsByTagName('PathPoint') + muscle.getElementsByTagName('MovingPathPoint')
+    for i in [0, len(path_points) - 1]:
+        path_point = path_points[i]
+        location = path_point.getElementsByTagName('location')[0].firstChild.data.strip()
         body = path_point.getElementsByTagName('body')[0].firstChild.data
-        content = f"\n<Shape id='n{id}' castShadows='true'>\n"
-        content += f"  <PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
-        content += f"  <Cylinder id='n{id + 2}' radius='0.0325' height='0.1'></Cylinder>\n</Shape>\n"
-        id += 3
+        content = f"\n<Transform id='n{id}' translation='{location}'><Shape id='n{id + 1}' castShadows='true'>\n"
+        base_color = '1 0.54 0.08' if i == 0 else '0.54 1 0.08'
+        content += f"  <PBRAppearance id='n{id + 2}' baseColor='{base_color}' roughness='0.3' metalness='0'></PBRAppearance>\n"
+        content += f"  <Sphere id='n{id + 3}' radius='0.0325'></Sphere>\n</Shape></Transform>\n"
+        id += 4
         sphere = {
                 "id": id,
                 "parent_body": body,
                 "body": f"muscle-{muscle_count}",
-                "translation": [float(x) for x in location.split()],
-                "rotation": [1, 0, 0, 1.5707963267949],
+                "translation": [0, 0, 0],
+                "rotation": [1, 0, 0, 0],
                 "content": content,
-                "children": [],
                 "tx": None,
                 "tx_default": 0.0,
                 "ty": None,
@@ -307,18 +297,7 @@ for muscle in muscles:
         transforms.append(sphere)
         print(f'{body}: {location}')
 
-root = []
-for transform in transforms:  # nesting transforms
-    if transform['parent_body'] == 'ground':
-        root.append(transform)
-        print('Adding ' + transform['body'] + ' to ground')
-    else:
-        for parent in transforms:
-            if transform['parent_body'] == parent['body']:
-                parent['children'].append(transform)
-                print('Adding ' + transform['body'] + ' to ' + parent['body'])
-
-for transform in root:  # adding transforms to X3D
+for transform in transforms:  # adding transforms to X3D
     x3d += add_transform(transform)
 
 x3d += '</Transform>\n'
@@ -331,16 +310,19 @@ file.close()
 # generate the animation file from the STO file
 
 
-def list_bodies(list, t):
+def list_bodies(bones, muscles, t):
     if t['body'].startswith('muscle-'):
-        return
-    list.append(t)
-    for c in t['children']:
-        list_bodies(list, c)
+        muscles.append(t)
+    else:
+        bones.append(t)
 
 
-bodies = []
-list_bodies(bodies, root[0])
+bones = []
+muscles = []
+for transform in transforms:
+    list_bodies(bones, muscles, transform)
+bodies = bones + muscles
+
 print([x['body'] for x in bodies])
 
 file = open('resources/sto/1704_0.526_0.519.par.sto')
@@ -369,9 +351,9 @@ count = 0
 for line in lines:
     time = int(line[0] * 1000)
     animation += f'{{"time":{time},"poses":['
-    for body in bodies:
-        name = body['body']
-        id = body['id']
+    for bone in bones:
+        name = bone['body']
+        id = bone['id']
         tx = header.index(name + '.com_pos_x')
         ty = header.index(name + '.com_pos_y')
         tz = header.index(name + '.com_pos_z')
@@ -385,12 +367,17 @@ for line in lines:
         x = line[tx]
         y = line[ty]
         z = line[tz]
-        r2 = r.apply(body['mass_center'])
+        r2 = r.apply(bone['mass_center'])
         x -= r2[0]
         y -= r2[1]
         z -= r2[2]
         animation += f'"translation":"{x} {y} {z}",'
         animation += f'"rotation":"{rotvec[0]/angle} {rotvec[1]/angle} {rotvec[2]/angle} {angle}"}},'
+        for muscle in muscles:
+            if muscle['parent_body'] == name:
+                id = muscle['id']
+                animation += f'{{"id":{id},'
+                animation += f'"translation":"{x} {y} {z}"}},'
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
