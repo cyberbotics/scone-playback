@@ -190,17 +190,11 @@ for body in bodies:
         "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "rotation": [0, 0, 1, 0],
         "content": '',
-        "tx": None,
         "tx_default": 0.0,
-        "ty": None,
         "ty_default": 0.0,
-        "tz": None,
         "tz_default": 0.0,
-        "rx": None,
         "rx_default": 0.0,
-        "ry": None,
         "ry_default": 0.0,
-        "rz": None,
         "rz_default": 0.0
     }
     id += 1
@@ -280,17 +274,11 @@ for muscle in muscles:
                 "translation": [0, 0, 0],
                 "rotation": [1, 0, 0, 0],
                 "content": content,
-                "tx": None,
                 "tx_default": 0.0,
-                "ty": None,
                 "ty_default": 0.0,
-                "tz": None,
                 "tz_default": 0.0,
-                "rx": None,
                 "rx_default": 0.0,
-                "ry": None,
                 "ry_default": 0.0,
-                "rz": None,
                 "rz_default": 0.0}
         id += 1
         muscle_count += 1
