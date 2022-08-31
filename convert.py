@@ -85,16 +85,21 @@ def add_shape(filename):
 
 
 def add_transform(transform):
-    translation = [transform['translation'][0],
-                   transform['translation'][1],
-                   transform['translation'][2]]
-    rotation = [transform['rotation'][0],
-                transform['rotation'][1],
-                transform['rotation'][2],
-                transform['rotation'][3]]
-    x3d = f"<Transform id='n{transform['id']}' name='{transform['body']}'" + \
-          f" translation='{translation[0]} {translation[1]} {translation[2]}'" + \
-          f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'>"
+    x3d = f"<Transform id='n{transform['id']}' name='{transform['body']}'"
+    if 'translation' in transform:
+        translation = [transform['translation'][0],
+                       transform['translation'][1],
+                       transform['translation'][2]]
+        if translation != [0, 0, 0]:
+            x3d += f" translation='{translation[0]} {translation[1]} {translation[2]}'"
+    if 'rotation' in transform:
+        rotation = [transform['rotation'][0],
+                    transform['rotation'][1],
+                    transform['rotation'][2],
+                    transform['rotation'][3]]
+        if rotation[3] != 0:
+            x3d += f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'"
+    x3d += '>'
     x3d += transform['content']
     print(transform['body'] + ' -> ' + transform['parent_body'])
     x3d += '</Transform>'
@@ -108,7 +113,7 @@ file.close()
 
 file = minidom.parseString(content.replace('::', ''))
 
-bodies = file.getElementsByTagName('Body')
+bones = file.getElementsByTagName('Body')
 
 x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE X3D PUBLIC 'ISO//Web3D//DTD X3D 3.0//EN' 'http://www.web3d.org/specifications/x3d-3.0.dtd'>
@@ -178,21 +183,20 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 """
 id = 14
 transforms = []
-for body in bodies:
-    parent_bodies = body.getElementsByTagName('parent_body')
+for bone in bones:
+    parent_bodies = bone.getElementsByTagName('parent_body')
     if not parent_bodies:
         continue
     transform = {
         "id": id,
         "parent_body": parent_bodies[0].firstChild.data,
-        "body": body.attributes['name'].value,
-        "mass_center": [float(x) for x in body.getElementsByTagName('mass_center')[0].firstChild.data.split()],
-        "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
-        "rotation": [0, 0, 1, 0],
+        "body": bone.attributes['name'].value,
+        "mass_center": [float(x) for x in bone.getElementsByTagName('mass_center')[0].firstChild.data.split()],
+        "translation": [float(x) for x in bone.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "content": ''}
     id += 1
     transforms.append(transform)
-    geometry_files = body.getElementsByTagName('geometry_file')
+    geometry_files = bone.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
 
@@ -204,23 +208,22 @@ for muscle in muscles:
     for i in [0, len(path_points) - 1]:
         path_point = path_points[i]
         location = path_point.getElementsByTagName('location')[0].firstChild.data.strip()
-        body = path_point.getElementsByTagName('body')[0].firstChild.data
-        content = f"\n<Transform id='n{id}' translation='{location}'><Shape id='n{id + 1}' castShadows='true'>\n"
+        bone = path_point.getElementsByTagName('body')[0].firstChild.data
+        content = f"\n<Shape id='n{id}' castShadows='true'>\n"
         base_color = '1 0.54 0.08' if i == 0 else '0.54 1 0.08'
-        content += f"  <PBRAppearance id='n{id + 2}' baseColor='{base_color}' roughness='0.3' metalness='0'></PBRAppearance>\n"
-        content += f"  <Sphere id='n{id + 3}' radius='0.0325'></Sphere>\n</Shape></Transform>\n"
-        id += 4
+        content += f"  <PBRAppearance id='n{id + 1}' baseColor='{base_color}' roughness='0.3' metalness='0'></PBRAppearance>\n"
+        content += f"  <Sphere id='n{id + 2}' radius='0.0325'></Sphere>\n</Shape>\n"
+        id += 3
         sphere = {
                 "id": id,
-                "parent_body": body,
+                "parent_body": bone,
                 "body": f"muscle-{muscle_count}",
-                "translation": [0, 0, 0],
-                "rotation": [1, 0, 0, 0],
+                "translation": [float(x) for x in location.split()],
                 "content": content}
         id += 1
         muscle_count += 1
         transforms.append(sphere)
-        print(f'{body}: {location}')
+        print(f'{bone}: {location}')
 
 for transform in transforms:  # adding transforms to X3D
     x3d += add_transform(transform)
@@ -301,8 +304,11 @@ for line in lines:
         for muscle in muscles:
             if muscle['parent_body'] == name:
                 id = muscle['id']
+                mx = x + muscle['translation'][0]
+                my = y + muscle['translation'][1]
+                mz = z + muscle['translation'][2]
                 animation += f'{{"id":{id},'
-                animation += f'"translation":"{x} {y} {z}"}},'
+                animation += f'"translation":"{mx} {my} {mz}","scale":"0.1 0.1 0.1"}},'
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
