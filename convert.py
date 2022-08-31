@@ -85,9 +85,9 @@ def add_shape(filename):
 
 
 def add_transform(transform):
-    translation = [transform['translation'][0] + transform['tx'],
-                   transform['translation'][1] + transform['ty'],
-                   transform['translation'][2] + transform['tz']]
+    translation = [transform['translation'][0],
+                   transform['translation'][1],
+                   transform['translation'][2]]
     rotation = [transform['rotation'][0],
                 transform['rotation'][1],
                 transform['rotation'][2],
@@ -189,59 +189,9 @@ for body in bodies:
         "mass_center": [float(x) for x in body.getElementsByTagName('mass_center')[0].firstChild.data.split()],
         "translation": [float(x) for x in body.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "rotation": [0, 0, 1, 0],
-        "content": '',
-        "tx": 0.0,
-        "ty": 0.0,
-        "tz": 0.0,
-        "rx": 0.0,
-        "ry": 0.0,
-        "rz": 0.0
-    }
+        "content": ''}
     id += 1
     transforms.append(transform)
-    coordinates = body.getElementsByTagName('Coordinate')
-    for coordinate in coordinates:
-        motion_type = coordinate.getElementsByTagName('motion_type')[0].firstChild.data
-        default_value = float(coordinate.getElementsByTagName('default_value')[0].firstChild.data)
-        transform_axes = body.getElementsByTagName('TransformAxis')
-        for transform_axis in transform_axes:
-            cs = transform_axis.getElementsByTagName('coordinates')[0].firstChild
-            if not cs:
-                continue
-            if cs.data != coordinate.attributes['name'].value:
-                continue
-            value = default_value
-            function = transform_axis.getElementsByTagName('function')[0]
-            if function:
-                constant_tags = function.getElementsByTagName('Constant')
-                if len(constant_tags) > 0:
-                    value_tag = constant_tags[0].getElementsByTagName('value')[0]
-                    if value_tag:
-                        value += float(value_tag.firstChild.data)
-                simm_spline_tags = function.getElementsByTagName('SimmSpline')
-                if len(simm_spline_tags) > 0:
-                    x_array = [float(x) for x in simm_spline_tags[0].getElementsByTagName('x')[0].firstChild.data.split()]
-                    y_array = [float(y) for y in simm_spline_tags[0].getElementsByTagName('y')[0].firstChild.data.split()]
-                    cs = CubicSpline(x_array, y_array)
-                    value = cs(default_value)
-                    print("cubic spline for " + body.attributes['name'].value + " (" +
-                          transform_axis.attributes['name'].value + "): " + str(default_value) + " => " + str(value))
-            axis = transform_axis.getElementsByTagName('axis')[0].firstChild.data
-            name = transform_axis.attributes['name'].value
-            if name == 'translation1':
-                transform['tx'] = value
-            elif name == 'translation2':
-                transform['ty'] = value
-            elif name == 'translation3':
-                transform['tz'] = value
-            elif name == 'rotation1':
-                transform['rx'] = value
-            elif name == 'rotation2':
-                transform['ry_value'] = value
-            elif name == 'rotation3':
-                transform['rz_value'] = value
-            else:
-                print('Wrong TranformAxis name: ' + name)
     geometry_files = body.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
@@ -266,13 +216,7 @@ for muscle in muscles:
                 "body": f"muscle-{muscle_count}",
                 "translation": [0, 0, 0],
                 "rotation": [1, 0, 0, 0],
-                "content": content,
-                "tx": 0.0,
-                "ty": 0.0,
-                "tz": 0.0,
-                "rx": 0.0,
-                "ry": 0.0,
-                "rz": 0.0}
+                "content": content}
         id += 1
         muscle_count += 1
         transforms.append(sphere)
