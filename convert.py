@@ -1,17 +1,17 @@
 from xml.dom import minidom
 import numpy as np
-from scipy.interpolate import CubicSpline
 from scipy.spatial.transform import Rotation
+
+
+def list_bodies(bones, muscles, t):
+    if t['body'].startswith('muscle-'):
+        muscles.append(t)
+    else:
+        bones.append(t)
 
 
 def add_shape(filename):
     global id
-
-    # if filename[-9:] == 'femur.vtp' or filename[-13:] == 'hat_skull.vtp':
-    #     baseColor = " baseColor='1 0.5 0.5'"
-    # elif filename[-9:] == 'tibia.vtp':
-    #     baseColor = " baseColor='0.5 1 0.5'"
-    # else:
 
     baseColor = ''
     shape = f"<Shape id='n{id}' castShadows='true'>"
@@ -86,24 +86,39 @@ def add_shape(filename):
 
 def add_transform(transform):
     x3d = f"<Transform id='n{transform['id']}' name='{transform['body']}'"
-    if 'translation' in transform:
-        translation = [transform['translation'][0],
-                       transform['translation'][1],
-                       transform['translation'][2]]
+    if 'location_in_parent' in transform:
+        translation = [transform['location_in_parent'][0],
+                       transform['location_in_parent'][1],
+                       transform['location_in_parent'][2]]
         if translation != [0, 0, 0]:
             x3d += f" translation='{translation[0]} {translation[1]} {translation[2]}'"
-    if 'rotation' in transform:
-        rotation = [transform['rotation'][0],
-                    transform['rotation'][1],
-                    transform['rotation'][2],
-                    transform['rotation'][3]]
-        if rotation[3] != 0:
-            x3d += f" rotation='{rotation[0]} {rotation[1]} {rotation[2]} {rotation[3]}'"
     x3d += '>'
     x3d += transform['content']
-    print(transform['body'] + ' -> ' + transform['parent_body'])
     x3d += '</Transform>'
     return x3d
+
+
+def compute_transform(line, header, name, mass_center, offset=[0, 0, 0]):
+    tx = header.index(name + '.com_pos_x')
+    ty = header.index(name + '.com_pos_y')
+    tz = header.index(name + '.com_pos_z')
+    ox = header.index(name + '.ori_x')
+    oy = header.index(name + '.ori_y')
+    oz = header.index(name + '.ori_z')
+    r = Rotation.from_euler('xyz', [line[ox], line[oy], line[oz]])
+    rotvec = r.as_rotvec()
+    angle = np.linalg.norm(rotvec)
+    rx = rotvec[0]/angle
+    ry = rotvec[1]/angle
+    rz = rotvec[2]/angle
+    x = line[tx] + offset[0]
+    y = line[ty] + offset[1]
+    z = line[tz] + offset[2]
+    r2 = r.apply(mass_center)
+    x -= r2[0]
+    y -= r2[1]
+    z -= r2[2]
+    return [x, y, z, rx, ry, rz, angle]
 
 
 # parse an xml file by name
@@ -192,7 +207,7 @@ for bone in bones:
         "parent_body": parent_bodies[0].firstChild.data,
         "body": bone.attributes['name'].value,
         "mass_center": [float(x) for x in bone.getElementsByTagName('mass_center')[0].firstChild.data.split()],
-        "translation": [float(x) for x in bone.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
+        "location_in_parent": [float(x) for x in bone.getElementsByTagName('location_in_parent')[0].firstChild.data.split()],
         "content": ''}
     id += 1
     transforms.append(transform)
@@ -201,32 +216,49 @@ for bone in bones:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
 
 muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
-muscle_count = 0
 for muscle in muscles:
-    print('Muscle: ' + muscle.attributes['name'].value)
+    max_isometric_force = float(muscle.getElementsByTagName('max_isometric_force')[0].firstChild.data)
+    tendon_slack_length = float(muscle.getElementsByTagName('tendon_slack_length')[0].firstChild.data)
     path_points = muscle.getElementsByTagName('PathPoint') + muscle.getElementsByTagName('MovingPathPoint')
-    for i in [0, len(path_points) - 1]:
-        path_point = path_points[i]
-        location = path_point.getElementsByTagName('location')[0].firstChild.data.strip()
-        bone = path_point.getElementsByTagName('body')[0].firstChild.data
-        content = f"\n<Shape id='n{id}' castShadows='true'>\n"
-        base_color = '1 0.54 0.08' if i == 0 else '0.54 1 0.08'
-        content += f"  <PBRAppearance id='n{id + 1}' baseColor='{base_color}' roughness='0.3' metalness='0'></PBRAppearance>\n"
-        content += f"  <Sphere id='n{id + 2}' radius='0.0325'></Sphere>\n</Shape>\n"
-        id += 3
-        sphere = {
-                "id": id,
-                "parent_body": bone,
-                "body": f"muscle-{muscle_count}",
-                "translation": [float(x) for x in location.split()],
-                "content": content}
-        id += 1
-        muscle_count += 1
-        transforms.append(sphere)
-        print(f'{bone}: {location}')
+    last = len(path_points) - 1
+    radius = max_isometric_force / 200000
+    name = muscle.attributes['name'].value
+    content = f"\n<Transform id='n{id}' rotation='1 0 0 1.5708'>"
+    content += f"<Shape id='n{id + 1}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 2}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Cylinder id='n{id + 3}' radius='{radius}' height='{tendon_slack_length}'></Cylinder>\n</Shape></Transform>\n"
+    start_location = path_points[0].getElementsByTagName('location')[0].firstChild.data.strip()
+    end_location = path_points[last].getElementsByTagName('location')[0].firstChild.data.strip()
+    id += 4
+    transform = {
+      "id": id,
+      "body": f"muscle-{name}",
+      "start_bone": path_points[0].getElementsByTagName('body')[0].firstChild.data,
+      "start_location": [float(x) for x in start_location.split()],
+      "end_bone": path_points[last].getElementsByTagName('body')[0].firstChild.data,
+      "end_location": [float(x) for x in end_location.split()],
+      "max_isometric_force": max_isometric_force,
+      "content": content
+    }
+    id += 1
+    print('Muscle: ' + transform['body'] + ' between ' + transform['start_bone'] + ' and ' + transform['end_bone'])
+    transforms.append(transform)
 
 for transform in transforms:  # adding transforms to X3D
     x3d += add_transform(transform)
+
+start_muscle_id = id
+x3d += f"<Transform id='n{id}'>"
+x3d += f"<Shape id='n{id + 1}' castShadows='true'>\n"
+x3d += f"<PBRAppearance id='n{id + 2}' baseColor='1 0 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
+x3d += f"<Sphere id='n{id + 3}' radius='0.01'></Sphere>\n</Shape></Transform>\n"
+id += 4
+end_muscle_id = id
+x3d += f"<Transform id='n{id}'>"
+x3d += f"<Shape id='n{id + 1}' castShadows='true'>\n"
+x3d += f"<PBRAppearance id='n{id + 2}' baseColor='0.3 0 1' roughness='0.3' metalness='0'></PBRAppearance>\n"
+x3d += f"<Sphere id='n{id + 3}' radius='0.01'></Sphere>\n</Shape></Transform>\n"
+id += 4
 
 x3d += '</Transform>\n'
 x3d += '</Scene></X3D>\n'
@@ -236,14 +268,6 @@ file.write(x3d)
 file.close()
 
 # generate the animation file from the STO file
-
-
-def list_bodies(bones, muscles, t):
-    if t['body'].startswith('muscle-'):
-        muscles.append(t)
-    else:
-        bones.append(t)
-
 
 bones = []
 muscles = []
@@ -273,6 +297,7 @@ basic_time_step = int(lines[1][0] * 1000)
 ids = ''
 for body in bodies:
     ids += str(body['id']) + ';'
+ids += str(start_muscle_id) + ';' + str(end_muscle_id) + ';'
 ids = ids[:-1]
 animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
 count = 0
@@ -282,33 +307,29 @@ for line in lines:
     for bone in bones:
         name = bone['body']
         id = bone['id']
-        tx = header.index(name + '.com_pos_x')
-        ty = header.index(name + '.com_pos_y')
-        tz = header.index(name + '.com_pos_z')
-        rx = header.index(name + '.ori_x')
-        ry = header.index(name + '.ori_y')
-        rz = header.index(name + '.ori_z')
-        r = Rotation.from_euler('xyz', [line[rx], line[ry], line[rz]])
-        rotvec = r.as_rotvec()
-        angle = np.linalg.norm(rotvec)
+        transform = compute_transform(line, header, name, bone['mass_center'])
         animation += f'{{"id":{id},'
-        x = line[tx]
-        y = line[ty]
-        z = line[tz]
-        r2 = r.apply(bone['mass_center'])
-        x -= r2[0]
-        y -= r2[1]
-        z -= r2[2]
-        animation += f'"translation":"{x} {y} {z}",'
-        animation += f'"rotation":"{rotvec[0]/angle} {rotvec[1]/angle} {rotvec[2]/angle} {angle}"}},'
-        for muscle in muscles:
-            if muscle['parent_body'] == name:
-                id = muscle['id']
-                mx = x + muscle['translation'][0]
-                my = y + muscle['translation'][1]
-                mz = z + muscle['translation'][2]
-                animation += f'{{"id":{id},'
-                animation += f'"translation":"{mx} {my} {mz}","scale":"0.1 0.1 0.1"}},'
+        animation += f'"translation":"{transform[0]} {transform[1]} {transform[2]}",'
+        animation += f'"rotation":"{transform[3]} {transform[4]} {transform[5]} {transform[6]}"}},'
+    for muscle in muscles:
+        id = muscle['id']
+        for bone in bones:
+            if muscle['start_bone'] == bone['body']:
+                start_transform = compute_transform(line, header, bone['body'], bone['mass_center'], muscle['start_location'])
+            elif muscle['end_bone'] == bone['body']:
+                end_transform = compute_transform(line, header, bone['body'], bone['mass_center'], muscle['end_location'])
+
+        animation += f'{{"id":{start_muscle_id},'
+        animation += f'"translation":"{start_transform[0]} {start_transform[1]} {start_transform[2]}"}},'
+        animation += f'{{"id":{end_muscle_id},'
+        animation += f'"translation":"{end_transform[0]} {end_transform[1]} {end_transform[2]}"}},'
+
+        muscle_translation = [(start_transform[0] + end_transform[0]) / 2,
+                              (start_transform[1] + end_transform[1]) / 2,
+                              (start_transform[2] + end_transform[2]) / 2]
+        animation += f'{{"id":{id},'
+        animation += f'"translation":"{muscle_translation[0]} {muscle_translation[1]} {muscle_translation[2]}"}},'
+        break  # FIXME: animate only the first muscle for debugging
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
