@@ -227,15 +227,6 @@ for bone in bones:
     geometry_files = bone.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
-    if bone.attributes['name'].value == 'pelvis':
-        print('Adding green sphere to pelvis')
-        content = f"\n<Transform id='n{id}' translation='-0.12596 -0.10257 0.06944'>"
-        content += f"<Shape id='n{id + 1}' castShadows='true'>\n"
-        content += f"<PBRAppearance id='n{id + 2}' baseColor='0 1 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
-        content += f"<Sphere id='n{id + 3}' radius='0.005'></Sphere>\n</Shape></Transform>\n"
-        id += 4
-        transform['content'] += content
-
 
 muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
 for muscle in muscles:
