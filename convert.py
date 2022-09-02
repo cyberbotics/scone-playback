@@ -324,11 +324,20 @@ for line in lines:
         animation += f'{{"id":{end_muscle_id},'
         animation += f'"translation":"{end_transform[0]} {end_transform[1]} {end_transform[2]}"}},'
 
-        muscle_translation = [(start_transform[0] + end_transform[0]) / 2,
-                              (start_transform[1] + end_transform[1]) / 2,
-                              (start_transform[2] + end_transform[2]) / 2]
+        v1 = np.array([0, 1, 0])
+        v2 = np.array([end_transform[0] - start_transform[0],
+                       end_transform[1] - start_transform[1],
+                       end_transform[2] - start_transform[2]])
+        cross_product = np.cross(v1, v2)
+        axis = cross_product / np.linalg.norm(cross_product)
+        angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
+
+        translation = [(start_transform[0] + end_transform[0]) / 2,
+                       (start_transform[1] + end_transform[1]) / 2,
+                       (start_transform[2] + end_transform[2]) / 2]
         animation += f'{{"id":{id},'
-        animation += f'"translation":"{muscle_translation[0]} {muscle_translation[1]} {muscle_translation[2]}"}},'
+        animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
+        animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}"}},'
         break  # FIXME: animate only the first muscle for debugging
     animation = animation[:-1]  # remove final coma
     animation += ']},'
