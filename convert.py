@@ -118,6 +118,22 @@ def compute_transform(line, header, name, mass_center, offset=[0, 0, 0]):
     return [x, y, z, rx, ry, rz, angle]
 
 
+def compute_position(line, header, name, mass_center, offset):
+    tx = header.index(name + '.com_pos_x')
+    ty = header.index(name + '.com_pos_y')
+    tz = header.index(name + '.com_pos_z')
+    ox = header.index(name + '.ori_x')
+    oy = header.index(name + '.ori_y')
+    oz = header.index(name + '.ori_z')
+    r = Rotation.from_euler('xyz', [line[ox], line[oy], line[oz]])
+    mc = [mass_center[0], mass_center[1], mass_center[2]]
+    r2 = r.apply(mc)
+    x = line[tx] + offset[0] - r2[0]
+    y = line[ty] + offset[1] - r2[1]
+    z = line[tz] + offset[2] - r2[2]
+    return [x, y, z]
+
+
 # parse an xml file by name
 file = open('resources/models/gait0914.osim', 'r')
 content = file.read()
@@ -211,6 +227,15 @@ for bone in bones:
     geometry_files = bone.getElementsByTagName('geometry_file')
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
+    if bone.attributes['name'].value == 'pelvis':
+        print('Adding green sphere to pelvis')
+        content = f"\n<Transform id='n{id}' translation='-0.12596 -0.10257 0.06944'>"
+        content += f"<Shape id='n{id + 1}' castShadows='true'>\n"
+        content += f"<PBRAppearance id='n{id + 2}' baseColor='0 1 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
+        content += f"<Sphere id='n{id + 3}' radius='0.005'></Sphere>\n</Shape></Transform>\n"
+        id += 4
+        transform['content'] += content
+
 
 muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
 for muscle in muscles:
@@ -220,6 +245,8 @@ for muscle in muscles:
     last = len(path_points) - 1
     radius = max_isometric_force / 500000
     name = muscle.attributes['name'].value
+    if name != 'hamstrings_r':  # FIXME: remove this once debugged
+        continue
     content = f"<Shape id='n{id}' castShadows='true'>\n"
     content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
     content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length * 1.2}'></Cylinder>\n</Shape>\n"
@@ -320,26 +347,26 @@ for line in lines:
         id = muscle['id']
         for bone in bones:
             if muscle['start_bone'] == bone['body']:
-                start_transform = compute_transform(line, header, bone['body'], bone['mass_center'], muscle['start_location'])
+                start_position = compute_position(line, header, bone['body'], bone['mass_center'], muscle['start_location'])
             elif muscle['end_bone'] == bone['body']:
-                end_transform = compute_transform(line, header, bone['body'], bone['mass_center'], muscle['end_location'])
+                end_position = compute_position(line, header, bone['body'], bone['mass_center'], muscle['end_location'])
 
         animation += f'{{"id":{id + 4},'
-        animation += f'"translation":"{start_transform[0]} {start_transform[1]} {start_transform[2]}"}},'
+        animation += f'"translation":"{start_position[0]} {start_position[1]} {start_position[2]}"}},'
         animation += f'{{"id":{id + 8},'
-        animation += f'"translation":"{end_transform[0]} {end_transform[1]} {end_transform[2]}"}},'
+        animation += f'"translation":"{end_position[0]} {end_position[1]} {end_position[2]}"}},'
 
         v1 = np.array([0, 0, 1])
-        v2 = np.array([end_transform[0] - start_transform[0],
-                       end_transform[1] - start_transform[1],
-                       end_transform[2] - start_transform[2]])
+        v2 = np.array([end_position[0] - start_position[0],
+                       end_position[1] - start_position[1],
+                       end_position[2] - start_position[2]])
         cross_product = np.cross(v1, v2)
         axis = cross_product / np.linalg.norm(cross_product)
         angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
 
-        translation = [(start_transform[0] + end_transform[0]) / 2,
-                       (start_transform[1] + end_transform[1]) / 2,
-                       (start_transform[2] + end_transform[2]) / 2]
+        translation = [(start_position[0] + end_position[0]) / 2,
+                       (start_position[1] + end_position[1]) / 2,
+                       (start_position[2] + end_position[2]) / 2]
         animation += f'{{"id":{id},'
         animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
         animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}"}},'
