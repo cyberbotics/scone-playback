@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation
 def list_bodies(bones, muscles, t):
     if t['body'].startswith('muscle-'):
         muscles.append(t)
-    else:
+    elif not t['body'].startswith('start-') and not t['body'].startswith('end-'):
         bones.append(t)
 
 
@@ -222,7 +222,7 @@ for muscle in muscles:
     name = muscle.attributes['name'].value
     content = f"<Shape id='n{id}' castShadows='true'>\n"
     content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
-    content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length}'></Cylinder>\n</Shape>\n"
+    content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length * 1.2}'></Cylinder>\n</Shape>\n"
     start_location = path_points[0].getElementsByTagName('location')[0].firstChild.data.strip()
     end_location = path_points[last].getElementsByTagName('location')[0].firstChild.data.strip()
     id += 3
@@ -239,22 +239,32 @@ for muscle in muscles:
     id += 1
     print('Muscle: ' + transform['body'] + ' between ' + transform['start_bone'] + ' and ' + transform['end_bone'])
     transforms.append(transform)
+    content = f"<Shape id='n{id}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Sphere id='n{id + 2}' radius='{radius * 1.1}'></Sphere>\n</Shape>\n"
+    id += 3
+    transform = {
+      "id": id,
+      "body": f"start-{name}",
+      "content": content
+    }
+    id += 1
+    transforms.append(transform)
+    content = f"<Shape id='n{id}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 1}' baseColor='0.3 0 1' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Sphere id='n{id + 2}' radius='{radius * 1.1}'></Sphere>\n</Shape>\n"
+    id += 3
+    transform = {
+      "id": id,
+      "body": f"end-{name}",
+      "content": content
+    }
+    id += 1
+    transforms.append(transform)
+
 
 for transform in transforms:  # adding transforms to X3D
     x3d += add_transform(transform)
-
-start_muscle_id = id
-x3d += f"<Transform id='n{id}'>"
-x3d += f"<Shape id='n{id + 1}' castShadows='true'>\n"
-x3d += f"<PBRAppearance id='n{id + 2}' baseColor='1 0 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
-x3d += f"<Sphere id='n{id + 3}' radius='0.01'></Sphere>\n</Shape></Transform>\n"
-id += 4
-end_muscle_id = id
-x3d += f"<Transform id='n{id}'>"
-x3d += f"<Shape id='n{id + 1}' castShadows='true'>\n"
-x3d += f"<PBRAppearance id='n{id + 2}' baseColor='0.3 0 1' roughness='0.3' metalness='0'></PBRAppearance>\n"
-x3d += f"<Sphere id='n{id + 3}' radius='0.01'></Sphere>\n</Shape></Transform>\n"
-id += 4
 
 x3d += '</Transform>\n'
 x3d += '</Scene></X3D>\n'
@@ -293,7 +303,6 @@ basic_time_step = int(lines[1][0] * 1000)
 ids = ''
 for body in bodies:
     ids += str(body['id']) + ';'
-ids += str(start_muscle_id) + ';' + str(end_muscle_id) + ';'
 ids = ids[:-1]
 animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
 count = 0
@@ -315,9 +324,9 @@ for line in lines:
             elif muscle['end_bone'] == bone['body']:
                 end_transform = compute_transform(line, header, bone['body'], bone['mass_center'], muscle['end_location'])
 
-        animation += f'{{"id":{start_muscle_id},'
+        animation += f'{{"id":{id + 4},'
         animation += f'"translation":"{start_transform[0]} {start_transform[1]} {start_transform[2]}"}},'
-        animation += f'{{"id":{end_muscle_id},'
+        animation += f'{{"id":{id + 8},'
         animation += f'"translation":"{end_transform[0]} {end_transform[1]} {end_transform[2]}"}},'
 
         v1 = np.array([0, 0, 1])
