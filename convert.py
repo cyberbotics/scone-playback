@@ -107,17 +107,14 @@ def compute_transform(line, header, name, mass_center, offset=[0, 0, 0]):
     oz = header.index(name + '.ori_z')
     r = Rotation.from_euler('xyz', [line[ox], line[oy], line[oz]])
     rotvec = r.as_rotvec()
+    r2 = r.apply(mass_center)
     angle = np.linalg.norm(rotvec)
     rx = rotvec[0]/angle
     ry = rotvec[1]/angle
     rz = rotvec[2]/angle
-    x = line[tx] + offset[0]
-    y = line[ty] + offset[1]
-    z = line[tz] + offset[2]
-    r2 = r.apply(mass_center)
-    x -= r2[0]
-    y -= r2[1]
-    z -= r2[2]
+    x = line[tx] + offset[0] - r2[0]
+    y = line[ty] + offset[1] - r2[1]
+    z = line[tz] + offset[2] - r2[2]
     return [x, y, z, rx, ry, rz, angle]
 
 
@@ -221,15 +218,14 @@ for muscle in muscles:
     tendon_slack_length = float(muscle.getElementsByTagName('tendon_slack_length')[0].firstChild.data)
     path_points = muscle.getElementsByTagName('PathPoint') + muscle.getElementsByTagName('MovingPathPoint')
     last = len(path_points) - 1
-    radius = max_isometric_force / 200000
+    radius = max_isometric_force / 500000
     name = muscle.attributes['name'].value
-    content = f"\n<Transform id='n{id}' rotation='1 0 0 1.5708'>"
-    content += f"<Shape id='n{id + 1}' castShadows='true'>\n"
-    content += f"<PBRAppearance id='n{id + 2}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
-    content += f"<Cylinder id='n{id + 3}' radius='{radius}' height='{tendon_slack_length}'></Cylinder>\n</Shape></Transform>\n"
+    content = f"<Shape id='n{id}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length}'></Cylinder>\n</Shape>\n"
     start_location = path_points[0].getElementsByTagName('location')[0].firstChild.data.strip()
     end_location = path_points[last].getElementsByTagName('location')[0].firstChild.data.strip()
-    id += 4
+    id += 3
     transform = {
       "id": id,
       "body": f"muscle-{name}",
@@ -324,7 +320,7 @@ for line in lines:
         animation += f'{{"id":{end_muscle_id},'
         animation += f'"translation":"{end_transform[0]} {end_transform[1]} {end_transform[2]}"}},'
 
-        v1 = np.array([0, 1, 0])
+        v1 = np.array([0, 0, 1])
         v2 = np.array([end_transform[0] - start_transform[0],
                        end_transform[1] - start_transform[1],
                        end_transform[2] - start_transform[2]])
@@ -338,7 +334,6 @@ for line in lines:
         animation += f'{{"id":{id},'
         animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
         animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}"}},'
-        break  # FIXME: animate only the first muscle for debugging
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
