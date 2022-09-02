@@ -126,11 +126,11 @@ def compute_position(line, header, name, mass_center, offset):
     oy = header.index(name + '.ori_y')
     oz = header.index(name + '.ori_z')
     r = Rotation.from_euler('xyz', [line[ox], line[oy], line[oz]])
-    mc = [mass_center[0], mass_center[1], mass_center[2]]
-    r2 = r.apply(mc)
-    x = line[tx] + offset[0] - r2[0]
-    y = line[ty] + offset[1] - r2[1]
-    z = line[tz] + offset[2] - r2[2]
+    r2 = r.apply(mass_center)
+    r3 = r.apply(offset)
+    x = line[tx] + r3[0] - r2[0]
+    y = line[ty] + r3[1] - r2[1]
+    z = line[tz] + r3[2] - r2[2]
     return [x, y, z]
 
 
@@ -245,8 +245,6 @@ for muscle in muscles:
     last = len(path_points) - 1
     radius = max_isometric_force / 500000
     name = muscle.attributes['name'].value
-    if name != 'hamstrings_r':  # FIXME: remove this once debugged
-        continue
     content = f"<Shape id='n{id}' castShadows='true'>\n"
     content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
     content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length * 1.2}'></Cylinder>\n</Shape>\n"
