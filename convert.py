@@ -338,14 +338,16 @@ for line in lines:
         fiber_length = line[header.index(name + '.fiber_length')]
         tendon_length = line[header.index(name + '.tendon_length')]
         mtu_length = line[header.index(name + '.mtu_length')]
-
-        print(f'Muscle {name}: {activation} {fiber_length} {tendon_length} {mtu_length}')
+        tendon_slack_length = muscle['tendon_slack_length']
+        muscle_scale = fiber_length / (tendon_slack_length / 2)
+        muscle_color = f'{activation} {0} {1 - activation}'
         v1 = np.array([0, 0, 1])
         v2 = np.array([end_position[0] - start_position[0],
                        end_position[1] - start_position[1],
                        end_position[2] - start_position[2]])
+        tendon_scale = mtu_length / tendon_slack_length
+        # the value of mtu_length should equal np.linalg.norm(v2)
         cross_product = np.cross(v1, v2)
-        scale = np.linalg.norm(v2) / muscle['tendon_slack_length']
         axis = cross_product / np.linalg.norm(cross_product)
         angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
         translation = [(start_position[0] + end_position[0]) / 2,
@@ -355,13 +357,17 @@ for line in lines:
         animation += f'{{"id":{id},'
         animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
         animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}",'
-        animation += f'"scale":"1 1 {scale}"}},'
+        animation += f'"scale":"1 1 {muscle_scale}"}},'
+
+        # muscle appearance
+        animation += f'{{"id":{id - 2},'
+        animation += f'"baseColor":"{muscle_color}"}},'
 
         # tendon
         animation += f'{{"id":{id - 4},'
         animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
         animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}",'
-        animation += f'"scale":"1 1 {scale}"}},'
+        animation += f'"scale":"1 1 {tendon_scale}"}},'
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
