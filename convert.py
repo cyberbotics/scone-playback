@@ -6,7 +6,7 @@ from scipy.spatial.transform import Rotation
 def list_bodies(bones, muscles, t):
     if t['body'].startswith('muscle-'):
         muscles.append(t)
-    elif not t['body'].startswith('start-') and not t['body'].startswith('end-'):
+    elif not t['body'].startswith('tendon-'):
         bones.append(t)
 
 
@@ -234,13 +234,28 @@ for muscle in muscles:
     tendon_slack_length = float(muscle.getElementsByTagName('tendon_slack_length')[0].firstChild.data)
     path_points = muscle.getElementsByTagName('PathPoint') + muscle.getElementsByTagName('MovingPathPoint')
     last = len(path_points) - 1
-    radius = max_isometric_force / 500000
+    radius = max_isometric_force / 1000000
     name = muscle.attributes['name'].value
-    content = f"<Shape id='n{id}' castShadows='true'>\n"
-    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
-    content += f"<Cylinder id='n{id + 2}' radius='{radius}' height='{tendon_slack_length * 1.2}'></Cylinder>\n</Shape>\n"
     start_location = path_points[0].getElementsByTagName('location')[0].firstChild.data.strip()
     end_location = path_points[last].getElementsByTagName('location')[0].firstChild.data.strip()
+
+    # tendon
+    content = f"<Shape id='n{id}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.54 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Capsule id='n{id + 2}' radius='{radius}' height='{tendon_slack_length}'></Capsule>\n</Shape>\n"
+    id += 3
+    transform = {
+      "id": id,
+      "body": f"tendon-{name}",
+      "content": content
+    }
+    id += 1
+    transforms.append(transform)
+
+    # muscle
+    content = f"<Shape id='n{id}' castShadows='true'>\n"
+    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0.2 0.08' roughness='0.3' metalness='0'></PBRAppearance>\n"
+    content += f"<Capsule id='n{id + 2}' radius='{radius * 2}' height='{tendon_slack_length / 2}'></Capsule>\n</Shape>\n"
     id += 3
     transform = {
       "id": id,
@@ -250,34 +265,12 @@ for muscle in muscles:
       "end_bone": path_points[last].getElementsByTagName('body')[0].firstChild.data,
       "end_location": [float(x) for x in end_location.split()],
       "max_isometric_force": max_isometric_force,
+      "tendon_slack_length": tendon_slack_length,
       "content": content
     }
     id += 1
+    transforms.append(transform)
     print('Muscle: ' + transform['body'] + ' between ' + transform['start_bone'] + ' and ' + transform['end_bone'])
-    transforms.append(transform)
-    content = f"<Shape id='n{id}' castShadows='true'>\n"
-    content += f"<PBRAppearance id='n{id + 1}' baseColor='1 0 0.3' roughness='0.3' metalness='0'></PBRAppearance>\n"
-    content += f"<Sphere id='n{id + 2}' radius='{radius * 1.1}'></Sphere>\n</Shape>\n"
-    id += 3
-    transform = {
-      "id": id,
-      "body": f"start-{name}",
-      "content": content
-    }
-    id += 1
-    transforms.append(transform)
-    content = f"<Shape id='n{id}' castShadows='true'>\n"
-    content += f"<PBRAppearance id='n{id + 1}' baseColor='0.3 0 1' roughness='0.3' metalness='0'></PBRAppearance>\n"
-    content += f"<Sphere id='n{id + 2}' radius='{radius * 1.1}'></Sphere>\n</Shape>\n"
-    id += 3
-    transform = {
-      "id": id,
-      "body": f"end-{name}",
-      "content": content
-    }
-    id += 1
-    transforms.append(transform)
-
 
 for transform in transforms:  # adding transforms to X3D
     x3d += add_transform(transform)
@@ -340,25 +333,35 @@ for line in lines:
             elif muscle['end_bone'] == bone['body']:
                 end_position = compute_position(line, header, bone['body'], bone['mass_center'], muscle['end_location'])
 
-        animation += f'{{"id":{id + 4},'
-        animation += f'"translation":"{start_position[0]} {start_position[1]} {start_position[2]}"}},'
-        animation += f'{{"id":{id + 8},'
-        animation += f'"translation":"{end_position[0]} {end_position[1]} {end_position[2]}"}},'
+        name = muscle['body'][7:]
+        activation = line[header.index(name + '.activation')]
+        fiber_length = line[header.index(name + '.fiber_length')]
+        tendon_length = line[header.index(name + '.tendon_length')]
+        mtu_length = line[header.index(name + '.mtu_length')]
 
+        print(f'Muscle {name}: {activation} {fiber_length} {tendon_length} {mtu_length}')
         v1 = np.array([0, 0, 1])
         v2 = np.array([end_position[0] - start_position[0],
                        end_position[1] - start_position[1],
                        end_position[2] - start_position[2]])
         cross_product = np.cross(v1, v2)
+        scale = np.linalg.norm(v2) / muscle['tendon_slack_length']
         axis = cross_product / np.linalg.norm(cross_product)
         angle = np.arccos(np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2)))
-
         translation = [(start_position[0] + end_position[0]) / 2,
                        (start_position[1] + end_position[1]) / 2,
                        (start_position[2] + end_position[2]) / 2]
+        # muscle
         animation += f'{{"id":{id},'
         animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
-        animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}"}},'
+        animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}",'
+        animation += f'"scale":"1 1 {scale}"}},'
+
+        # tendon
+        animation += f'{{"id":{id - 4},'
+        animation += f'"translation":"{translation[0]} {translation[1]} {translation[2]}",'
+        animation += f'"rotation":"{axis[0]} {axis[1]} {axis[2]} {angle}",'
+        animation += f'"scale":"1 1 {scale}"}},'
     animation = animation[:-1]  # remove final coma
     animation += ']},'
     count += 1
