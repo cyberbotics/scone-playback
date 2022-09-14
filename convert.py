@@ -149,6 +149,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
  xsd:noNamespaceSchemaLocation='http://www.web3d.org/specifications/x3d-3.0.xsd'>
 <head>
 <meta name='generator' content='Webots' />
+<meta name='version' content='R2022b' />
 </head>
 <Scene>
 <WorldInfo id='n1' title='Human Skeleton' info='Imported from OpenSim' basicTimeStep='32' coordinateSystem='ENU'>
