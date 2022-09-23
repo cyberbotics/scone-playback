@@ -315,7 +315,10 @@ for body in bodies:
     ids += str(body['id']) + ';'
 ids = ids[:-1]
 animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
+angles = f'{{"basicTimeStep":{basic_time_step}, "names": ["pelvis_tilt", "hip_flexion_l", "hip_flexion_r", "knee_angle_l", "knee_angle_r", "ankle_angle_l", "ankle_angle_r"], "frames":['
+angles_indexes = [header.index('pelvis_tilt'), header.index('hip_flexion_l'), header.index('hip_flexion_r'), header.index('knee_angle_l'), header.index('knee_angle_r'), header.index('ankle_angle_l'), header.index('ankle_angle_r')]
 count = 0
+
 for line in lines:
     time = int(line[0] * 1000)
     animation += f'{{"time":{time},"poses":['
@@ -371,8 +374,19 @@ for line in lines:
         animation += f'"scale":"1 1 {tendon_scale}"}},'
     animation = animation[:-1]  # remove final coma
     animation += ']},'
+
+    angles += f'{{"time": {time}, "angles": ['
+    for index in angles_indexes:
+        angles += f'{line[index]},'
+    angles = angles[:-1]
+    angles += ']},'
     count += 1
 animation = animation[:-1] + ']}\n'
 file = open('animation.json', 'w', newline='\n')
 file.write(animation)
+file.close()
+
+angles = angles[:-1] + ']}\n'
+file = open('angles.json', 'w', newline='\n')
+file.write(angles)
 file.close()
