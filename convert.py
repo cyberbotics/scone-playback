@@ -285,8 +285,17 @@ for body in bodies:
     ids += str(body['id']) + ';'
 ids = ids[:-1]
 animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
-angles = f'{{"basicTimeStep":{basic_time_step}, "names": ["pelvis_tilt", "hip_flexion_l", "hip_flexion_r", "knee_angle_l", "knee_angle_r", "ankle_angle_l", "ankle_angle_r"], "frames":['
-angles_indexes = [header.index('pelvis_tilt'), header.index('hip_flexion_l'), header.index('hip_flexion_r'), header.index('knee_angle_l'), header.index('knee_angle_r'), header.index('ankle_angle_l'), header.index('ankle_angle_r')]
+angles = f'{{"basicTimeStep":{basic_time_step}, "names": ["leg0_l.grf_x", "leg1_r.grf_x", "leg0_l.grf_y", "leg1_r.grf_y", "leg0_l.grf_z", "leg1_r.grf_z", "hamstrings_r.mtu_length", "glut_max_r.mtu_length", "iliopsoas_r.mtu_length",  "vasti_r.mtu_length", "gastroc_r.mtu_length", "soleus_r.mtu_length", "tib_ant_r.mtu_length", "hamstrings_l.mtu_length", "glut_max_l.mtu_length", "iliopsoas_l.mtu_length", "vasti_l.mtu_length", "gastroc_l.mtu_length", "soleus_l.mtu_length", "tib_ant_l.mtu_length","pelvis_tilt", "hip_flexion_r", "knee_angle_r", "ankle_angle_r", "hip_flexion_l", "knee_angle_l", "ankle_angle_l", "hamstrings_r.activation", "glut_max_r.activation", "iliopsoas_r.activation", "vasti_r.activation", "gastroc_r.activation", "soleus_r.activation", "tib_ant_r.activation", "hamstrings_l.activation", "glut_max_l.activation", "iliopsoas_l.activation", "vasti_l.activation", "gastroc_l.activation", "soleus_l.activation", "tib_ant_l.activation"], "frames":['
+
+angles_name = ["leg0_l.grf_x", "leg1_r.grf_x", "leg0_l.grf_y", "leg1_r.grf_y",
+ "leg0_l.grf_z", "leg1_r.grf_z", "hamstrings_r.mtu_length", "glut_max_r.mtu_length", "iliopsoas_r.mtu_length",
+ "vasti_r.mtu_length", "gastroc_r.mtu_length", "soleus_r.mtu_length", "tib_ant_r.mtu_length", "hamstrings_l.mtu_length",
+ "glut_max_l.mtu_length", "iliopsoas_l.mtu_length", "vasti_l.mtu_length", "gastroc_l.mtu_length", "soleus_l.mtu_length",
+ "tib_ant_l.mtu_length", "pelvis_tilt", "hip_flexion_r", "knee_angle_r", "ankle_angle_r", "hip_flexion_l", "knee_angle_l",
+ "ankle_angle_l", "hamstrings_r.activation", "glut_max_r.activation", "iliopsoas_r.activation", "vasti_r.activation",
+ "gastroc_r.activation", "soleus_r.activation", "tib_ant_r.activation", "hamstrings_l.activation", "glut_max_l.activation",
+ "iliopsoas_l.activation", "vasti_l.activation", "gastroc_l.activation", "soleus_l.activation", "tib_ant_l.activation"]
+
 count = 0
 
 for line in lines:
@@ -345,11 +354,16 @@ for line in lines:
     animation = animation[:-1]  # remove final coma
     animation += ']},'
 
-    angles += f'{{"time": {time}, "angles": ['
-    for index in angles_indexes:
-        angles += f'{line[index]},'
+    angles += f'{{"time": {time}, "angles": ' + '{'
+
+    for name in angles_name:
+        if (name in ["pelvis_tilt", "knee_angle_l", "knee_angle_r"]):
+            value = -1 *line[header.index(name)]
+            angles += f'"{name}":{value},'
+        else:
+            angles += f'"{name}":{line[header.index(name)]},'
     angles = angles[:-1]
-    angles += ']},'
+    angles += '}},'
     count += 1
 animation = animation[:-1] + ']}\n'
 file = open('animation.json', 'w', newline='\n')
