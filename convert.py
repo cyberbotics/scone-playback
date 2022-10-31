@@ -1,3 +1,21 @@
+# 14 muscles
+#  Millard
+#   Geyer2010
+#    => gait0914.osim + geyer14.sto
+#   spinal_controller
+#    => gait0914.osim + geyer_spinal_controller_14.sto
+# 18 muscle
+#  Millard
+#   Ong2019
+#    => gait0918_millard.osim + Millard_ong_18.sto
+#   spinal_controller
+#    => gait0918_millard.osim + Millard_spinal_controller_18.sto
+#  Thelen
+#   Ong2019
+#    => gait9dof18musc_Thelen_20170320.osim + Thelen_ong_18.sto
+#   spinal_controller
+#    => gait9dof18musc_Thelen_20170320.osim + ong_spinal_controller.sto
+
 from xml.dom import minidom
 import numpy as np
 from scipy.spatial.transform import Rotation
