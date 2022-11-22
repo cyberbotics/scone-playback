@@ -1,7 +1,7 @@
 # 14 muscles
 #  Millard
 #   Geyer2010
-#    => gait0914.osim + geyer14.sto
+#    => gait0914.osim + geyer_14.sto
 #   spinal_controller
 #    => gait0914.osim + geyer_spinal_controller_14.sto
 # 18 muscle
@@ -153,7 +153,7 @@ def compute_position(line, header, name, mass_center, offset):
 
 
 # parse an xml file by name
-file = open('resources/models/gait0914.osim', 'r')
+file = open('resources/models/gait9dof18musc_Thelen_20170320.osim', 'r')
 content = file.read()
 file.close()
 
@@ -247,7 +247,7 @@ for bone in bones:
     for geometry_file in geometry_files:
         transform['content'] += add_shape('resources/geometry/' + geometry_file.firstChild.data)
 
-muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle')
+muscles = file.getElementsByTagName('Millard2012EquilibriumMuscle') + file.getElementsByTagName('Thelen2003Muscle')
 for muscle in muscles:
     max_isometric_force = float(muscle.getElementsByTagName('max_isometric_force')[0].firstChild.data)
     tendon_slack_length = float(muscle.getElementsByTagName('tendon_slack_length')[0].firstChild.data)
@@ -311,7 +311,7 @@ bodies = bones + muscles
 
 print([x['body'] for x in bodies])
 
-file = open('resources/sto/1704_0.526_0.519.par.sto')
+file = open('resources/sto/ong_spinal_controller.sto')
 while True:
     line = file.readline().strip()
     if line == 'endheader':
