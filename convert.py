@@ -175,46 +175,16 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <Viewpoint id='n2' orientation='0 0 1 3.66' position='12.858 1.682 0.863'
  exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
 </Viewpoint>
-<Background id='n3'
- rightUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.png'
- rightIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_right.hdr'
- leftUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.png'
- leftIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_left.hdr'
- topUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.png'
- topIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_top.hdr'
- bottomUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.png'
- bottomIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_bottom.hdr'
- frontUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.png'
- frontIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_front.hdr'
- backUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.png'
- backIrradianceUrl='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/cubic/mountains_back.hdr'>
+<Background id='n3' skyColor='0.7 0.7 0.7' luminosity='0.8'>
 </Background>
 <DirectionalLight id='n4' direction='0.55 -0.6 -1' intensity='2.7' ambientIntensity='1' castShadows='true'>
 </DirectionalLight>
 <Transform id='n5' name='rectangle arena' type='solid' translation="5 0 0">
 <Shape id='n6' castShadows='false'>
-<PBRAppearance id='n7' roughness='1' metalness='0'>
+<PBRAppearance id='n7' roughness='1' metalness='0' baseColor='0.8 0.8 0.8'>
 <ImageTexture id='n8'
- url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_base_color.jpg'
+ url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/grid.png'
  containerField='' origChannelCount='3' isTransparent='false' role='baseColor'>
-<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
- magnificationFilter="AVG_PIXEL"/>
-</ImageTexture>
-<ImageTexture id='n9'
- url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_roughness.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='roughness'>
-<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
- magnificationFilter="AVG_PIXEL"/>
-</ImageTexture>
-<ImageTexture id='n10'
- url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_normal.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='normal'>
-<TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
- magnificationFilter="AVG_PIXEL"/>
-</ImageTexture>
-<ImageTexture id='n11'
- url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/parquetry/chequered_parquetry_occlusion.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='occlusion'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
@@ -333,8 +303,17 @@ for body in bodies:
     ids += str(body['id']) + ';'
 ids = ids[:-1]
 animation = f'{{"basicTimeStep":{basic_time_step},"ids":"{ids}","labelsIds":"","frames":['
-angles = f'{{"basicTimeStep":{basic_time_step}, "names": ["pelvis_tilt", "hip_flexion_l", "hip_flexion_r", "knee_angle_l", "knee_angle_r", "ankle_angle_l", "ankle_angle_r"], "frames":['
-angles_indexes = [header.index('pelvis_tilt'), header.index('hip_flexion_l'), header.index('hip_flexion_r'), header.index('knee_angle_l'), header.index('knee_angle_r'), header.index('ankle_angle_l'), header.index('ankle_angle_r')]
+angles = f'{{"basicTimeStep":{basic_time_step}, "names": ["leg0_l.grf_x", "leg1_r.grf_x", "leg0_l.grf_y", "leg1_r.grf_y", "leg0_l.grf_z", "leg1_r.grf_z", "hamstrings_r.mtu_length", "glut_max_r.mtu_length", "iliopsoas_r.mtu_length",  "vasti_r.mtu_length", "gastroc_r.mtu_length", "soleus_r.mtu_length", "tib_ant_r.mtu_length", "hamstrings_l.mtu_length", "glut_max_l.mtu_length", "iliopsoas_l.mtu_length", "vasti_l.mtu_length", "gastroc_l.mtu_length", "soleus_l.mtu_length", "tib_ant_l.mtu_length","pelvis_tilt", "hip_flexion_r", "knee_angle_r", "ankle_angle_r", "hip_flexion_l", "knee_angle_l", "ankle_angle_l", "hamstrings_r.activation", "glut_max_r.activation", "iliopsoas_r.activation", "vasti_r.activation", "gastroc_r.activation", "soleus_r.activation", "tib_ant_r.activation", "hamstrings_l.activation", "glut_max_l.activation", "iliopsoas_l.activation", "vasti_l.activation", "gastroc_l.activation", "soleus_l.activation", "tib_ant_l.activation"], "frames":['
+
+angles_name = ["leg0_l.grf_x", "leg1_r.grf_x", "leg0_l.grf_y", "leg1_r.grf_y",
+ "leg0_l.grf_z", "leg1_r.grf_z", "hamstrings_r.mtu_length", "glut_max_r.mtu_length", "iliopsoas_r.mtu_length",
+ "vasti_r.mtu_length", "gastroc_r.mtu_length", "soleus_r.mtu_length", "tib_ant_r.mtu_length", "hamstrings_l.mtu_length",
+ "glut_max_l.mtu_length", "iliopsoas_l.mtu_length", "vasti_l.mtu_length", "gastroc_l.mtu_length", "soleus_l.mtu_length",
+ "tib_ant_l.mtu_length", "pelvis_tilt", "hip_flexion_r", "knee_angle_r", "ankle_angle_r", "hip_flexion_l", "knee_angle_l",
+ "ankle_angle_l", "hamstrings_r.activation", "glut_max_r.activation", "iliopsoas_r.activation", "vasti_r.activation",
+ "gastroc_r.activation", "soleus_r.activation", "tib_ant_r.activation", "hamstrings_l.activation", "glut_max_l.activation",
+ "iliopsoas_l.activation", "vasti_l.activation", "gastroc_l.activation", "soleus_l.activation", "tib_ant_l.activation"]
+
 count = 0
 
 for line in lines:
@@ -393,11 +372,16 @@ for line in lines:
     animation = animation[:-1]  # remove final coma
     animation += ']},'
 
-    angles += f'{{"time": {time}, "angles": ['
-    for index in angles_indexes:
-        angles += f'{line[index]},'
+    angles += f'{{"time": {time}, "angles": ' + '{'
+
+    for name in angles_name:
+        if (name in ["pelvis_tilt", "knee_angle_l", "knee_angle_r"]):
+            value = -1 *line[header.index(name)]
+            angles += f'"{name}":{value},'
+        else:
+            angles += f'"{name}":{line[header.index(name)]},'
     angles = angles[:-1]
-    angles += ']},'
+    angles += '}},'
     count += 1
 animation = animation[:-1] + ']}\n'
 file = open('animation.json', 'w', newline='\n')
