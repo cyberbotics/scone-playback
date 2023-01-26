@@ -318,7 +318,7 @@ count = 0
 
 for line in lines:
     time = int(line[0] * 1000)
-    animation += f'{{"time":{time},"poses":['
+    animation += f'{{"time":{time},"updates":['
     for bone in bones:
         name = bone['body']
         id = bone['id']
