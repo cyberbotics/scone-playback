@@ -39,25 +39,25 @@ def add_shape(filename):
         shape += f"""<PBRAppearance id='n{id}' roughness='1' metalness='0' normalMapFactor='0.2'{baseColor}>
 <ImageTexture id='n{id+1}'
  url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_base_color.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='baseColor'>
+ containerField='' origChannelCount='3' isTransparent='false' role='baseColorMap'>
 <TextureProperties id='n{id+2}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+3}'
  url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_roughness.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='roughness'>
+ containerField='' origChannelCount='3' isTransparent='false' role='roughnessMap'>
 <TextureProperties id='n{id+4}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+5}'
  url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_normal.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='normal'>
+ containerField='' origChannelCount='3' isTransparent='false' role='normalMap'>
 <TextureProperties id='n{id+6}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter='AVG_PIXEL'/>
 </ImageTexture>
 <ImageTexture id='n{id+7}'
  url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/appearances/protos/textures/marble/marble_occlusion.jpg'
- containerField='' origChannelCount='3' isTransparent='false' role='occlusion'>
+ containerField='' origChannelCount='3' isTransparent='false' role='occlusionMap'>
 <TextureProperties id='n{id+8}' anisotropicDegree='8' generateMipMaps='true' minificationFilter='AVG_PIXEL'
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
@@ -184,7 +184,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <PBRAppearance id='n7' roughness='1' metalness='0' baseColor='0.8 0.8 0.8'>
 <ImageTexture id='n8'
  url='https://raw.githubusercontent.com/cyberbotics/webots/R2022a/projects/default/worlds/textures/grid.png'
- containerField='' origChannelCount='3' isTransparent='false' role='baseColor'>
+ containerField='' origChannelCount='3' isTransparent='false' role='baseColorMap'>
 <TextureProperties anisotropicDegree="8" generateMipMaps="true" minificationFilter="AVG_PIXEL"
  magnificationFilter="AVG_PIXEL"/>
 </ImageTexture>
