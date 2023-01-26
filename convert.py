@@ -196,7 +196,7 @@ x3d = """<?xml version='1.0' encoding='UTF-8'?>
 <TextureCoordinate point='16.0000 0.0000, 0.0000 16.0000, 0.0000 0.0000, 16.0000 16.0000'></TextureCoordinate>
 </IndexedFaceSet>
 </Shape></Transform>
-<Transform id='n13' type='solid' rotation='1 0 0 1.5708'>
+<Transform id='n13' type='solid' name='skeleton' rotation='1 0 0 1.5708'>
 """
 id = 14
 transforms = []
