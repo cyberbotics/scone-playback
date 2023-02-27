@@ -18,6 +18,7 @@
 
 from xml.dom import minidom
 import numpy as np
+import argparse
 from scipy.spatial.transform import Rotation
 
 
@@ -152,8 +153,20 @@ def compute_position(line, header, name, mass_center, offset):
     return [x, y, z]
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("osim", help="The .osim file")
+parser.add_argument("sto", help="The .sto file")
+args = parser.parse_args();
+osim = args.osim
+if not osim.endswith(".osim"):
+    parser.error("osim argument should be a .osim file.")
+
+sto = args.sto
+if not sto.endswith(".sto"):
+    parser.error("sto argument should be a .sto file.")
+
 # parse an xml file by name
-file = open('resources/models/gait9dof18musc_Thelen_20170320.osim', 'r')
+file = open(osim, 'r')
 content = file.read()
 file.close()
 
@@ -172,8 +185,8 @@ x3d = """<?xml version="1.0" encoding="UTF-8"?>
 <Scene>
 <WorldInfo id='n1' title='Human Skeleton' info='Imported from OpenSim' basicTimeStep='32' coordinateSystem='ENU'>
 </WorldInfo>
-<Viewpoint id='n2' orientation='0 0 1 3.66' position='12.858 1.682 0.863'
- exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n230'>
+<Viewpoint id='n2' orientation='0 0 1 3.66' position='8.47, 3.45, 0.85'
+ exposure='1' bloomThreshold='21' zNear='0.05' zFar='0' followSmoothness='0.5' ambientOcclusionRadius='2' followedId='n14'>
 </Viewpoint>
 <Background id='n3' skyColor='0.7 0.7 0.7' luminosity='0.8'>
 </Background>
@@ -281,7 +294,7 @@ bodies = bones + muscles
 
 print([x['body'] for x in bodies])
 
-file = open('resources/sto/ong_spinal_controller.sto')
+file = open(sto)
 while True:
     line = file.readline().strip()
     if line == 'endheader':
